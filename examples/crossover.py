@@ -2,7 +2,7 @@ import datetime
 from nowtrade.symbol_list import StockList
 from nowtrade.data_connection import YahooConnection
 from nowtrade.dataset import Dataset
-from nowtrade.technical_indicator import SMA, Shift
+from nowtrade.technical_indicator import SMA
 from nowtrade.criteria import Crossing, TrailingStop
 from nowtrade.criteria_group import CriteriaGroup
 from nowtrade.action import Long, LongExit
