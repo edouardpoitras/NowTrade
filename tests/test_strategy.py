@@ -1,17 +1,11 @@
 import unittest
 import datetime
 import numpy as np
-import matplotlib.pyplot as plt
 from testing_data import DummyDataConnection
 from nowtrade import symbol_list, data_connection, dataset, technical_indicator, \
                      criteria, criteria_group, trading_profile, trading_amount, \
                      trading_fee, report, strategy
 from nowtrade.action import Long, Short, LongExit, ShortExit
-
-def plot(df, columns=None):
-    if columns: df.data_frame[columns].plot()
-    else: df.data_frame.plot()
-    plt.show()
 
 class TestStrategy(unittest.TestCase):
     def setUp(self):
@@ -138,8 +132,6 @@ class TestSlingshotStrategy(unittest.TestCase):
         d.add_technical_indicator(stochf_previous)
         columns = [stochf.fastk, stoch.slowk]
         columns = [eurusd.close, sma.value]
-        #plot(d, columns=columns)
-        #exit()
         # Enter Long
         enter_crit_long1 = criteria.Position(stoch.slowk, 'above', 80)
         enter_crit_long2 = criteria.Position(stochf_previous.value, 'below', 20)
