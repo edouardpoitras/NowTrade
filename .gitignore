@@ -1,0 +1,9 @@
+*.pyc
+*.log
+*.swp
+*.nn
+*.ens
+*.ensemble
+build/*
+ta-lib/*
+talib/*
