@@ -8,6 +8,12 @@ from nowtrade import logger
 from nowtrade.action import LONG, SHORT, NO_ACTION, LONG_EXIT, SHORT_EXIT
 from nowtrade import report
 
+# In process_new_data, when iterating through cg_data, we get the warning defined here:
+# http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+# This issue doesn't seem to affect our particular case.
+# This warning is being surpressed with the following line:
+pd.options.mode.chained_assignment = None
+
 class Strategy:
     def __init__(self, dataset, criteria_groups, trading_profile, enter_on='Close', exit_on='Close'):
         self.dataset = dataset
