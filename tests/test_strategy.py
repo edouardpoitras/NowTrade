@@ -17,7 +17,7 @@ class TestStrategy(unittest.TestCase):
 
     def test_simple_strategy(self):
         enter_crit = criteria.Above(self.symbol.close, 25.88)
-        exit_crit = criteria.TimeSinceAction(self.symbol, Long(), 2)
+        exit_crit = criteria.BarsSinceLong(self.symbol, 2)
         enter_crit_group = criteria_group.CriteriaGroup([enter_crit], Long(), self.symbol)
         exit_crit_group = criteria_group.CriteriaGroup([exit_crit], LongExit(), self.symbol)
         tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))

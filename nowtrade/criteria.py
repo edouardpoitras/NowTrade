@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from nowtrade import logger
+from nowtrade import action
 
 class Criteria(object):
     """
@@ -14,7 +15,7 @@ class Criteria(object):
         # Some TIs don't require the entire data_frame history.
         self.num_bars_required = None # Requires all history by default
 
-class TimeSinceAction(Criteria):
+class BarsSinceAction(Criteria):
     def __init__(self, symbol, action, periods, condition=None):
         Criteria.__init__(self)
         self.symbol = str(symbol)
@@ -22,10 +23,10 @@ class TimeSinceAction(Criteria):
         self.periods = periods
         self.condition = str(condition).upper()
         self.num_bars_required = self.periods + 1
-        self.label = 'TimeSinceAction_%s_%s_%s_%s' %(symbol, action, periods, condition)
+        self.label = 'BarsSinceAction_%s_%s_%s_%s' %(symbol, action, periods, condition)
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
-        return 'TimeSinceAction(symbol=%s, action=%s, periods=%s, condition=%s)' %(self.symbol, self.action, self.periods, self.condition)
+        return 'BarsSinceAction(symbol=%s, action=%s, periods=%s, condition=%s)' %(self.symbol, self.action, self.periods, self.condition)
     def __repr__(self): return self.label
     def apply(self, data_frame):
         if self.condition == 'OVER':
@@ -39,6 +40,31 @@ class TimeSinceAction(Criteria):
             if len(data_frame['ACTIONS_%s' %self.symbol]) > self.periods:
                 return self.action == data_frame['ACTIONS_%s' %self.symbol][-1-self.periods]
             return False
+
+class BarsSinceLong(BarsSinceAction):
+    def __init__(self, symbol, periods, condition=None):
+        BarsSinceAction.__init__(self, symbol, action.Long(), periods, condition)
+        self.label = 'BarsSinceLong_%s_%s_%s' %(symbol, periods, condition)
+    def __str__(self):
+        return 'BarsSinceLong(symbol=%s, periods=%s, condition=%s)' %(self.symbol, self.periods, self.condition)
+class BarsSinceShort(BarsSinceAction):
+    def __init__(self, symbol, periods, condition=None):
+        BarsSinceAction.__init__(self, symbol, action.Short(), periods, condition)
+        self.label = 'BarsSinceShort_%s_%s_%s' %(symbol, periods, condition)
+    def __str__(self):
+        return 'BarsSinceShort(symbol=%s, periods=%s, condition=%s)' %(self.symbol, self.periods, self.condition)
+class BarsSinceLongExit(BarsSinceAction):
+    def __init__(self, symbol, periods, condition=None):
+        BarsSinceAction.__init__(self, symbol, action.LongExit(), periods, condition)
+        self.label = 'BarsSinceLongExit_%s_%s_%s' %(symbol, periods, condition)
+    def __str__(self):
+        return 'BarsSinceLongExit(symbol=%s, periods=%s, condition=%s)' %(self.symbol, self.periods, self.condition)
+class BarsSinceShortExit(BarsSinceAction):
+    def __init__(self, symbol, periods, condition=None):
+        BarsSinceAction.__init__(self, symbol, action.ShortExit(), periods, condition)
+        self.label = 'BarsSinceShortExit_%s_%s_%s' %(symbol, periods, condition)
+    def __str__(self):
+        return 'BarsSinceShortExit(symbol=%s, periods=%s, condition=%s)' %(self.symbol, self.periods, self.condition)
 
 class InMarket(Criteria):
     """

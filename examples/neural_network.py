@@ -47,8 +47,8 @@ enter_crit_long = criteria.Below(symbol.close, threshold_below.value)
 # Current price is above the threshold of our neural network's prediction price
 enter_crit_short = criteria.Above(symbol.close, threshold_above.value)
 # Exit after 1 day - as per the network's parameters
-exit_crit_long = criteria.TimeSinceAction(symbol, Long(), 1)
-exit_crit_short = criteria.TimeSinceAction(symbol, Short(), 1)
+exit_crit_long = criteria.BarsSinceLong(symbol, 1)
+exit_crit_short = criteria.BarsSinceShort(symbol, 1)
 # Criteria Groups
 enter_crit_group1 = criteria_group.CriteriaGroup([enter_crit_long], Long(), symbol)
 enter_crit_group2 = criteria_group.CriteriaGroup([enter_crit_short], Short(), symbol)

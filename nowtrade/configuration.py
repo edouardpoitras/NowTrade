@@ -14,8 +14,8 @@ LOGGING_DEFAULT_FILE = logging.WARNING
 # Criteria module
 #LOGGING_Position_CONSOLE = logging.DEBUG
 #LOGGING_Position_FILE = logging.DEBUG
-#LOGGING_TimeSinceAction_CONSOLE = logging.DEBUG
-#LOGGING_TimeSinceAction_FILE = logging.DEBUG
+#LOGGING_BarsSinceLong_CONSOLE = logging.DEBUG
+#LOGGING_BarsSinceLong_FILE = logging.DEBUG
 
 # Criteria Group module
 #LOGGING_CriteriaGroup_CONSOLE = logging.DEBUG
