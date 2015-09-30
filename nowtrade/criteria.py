@@ -282,6 +282,58 @@ class Position(Criteria):
             else: results = data_frame[self.param1] == data_frame[self.param2]
         return results.iloc[-1]
 
+class Above(Criteria):
+    def __init__(self, param1, param2):
+        Criteria.__init__(self)
+        self.param1 = param1 # Technical indicator label
+        self.param2 = param2 # Technical indicator label or int or long or float
+        self.label = 'Above_%s_%s' %(param1, param2)
+        self.num_bars_required = 1
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'Above(param1=%s, param2=%s)' %(self.param1, self.param2)
+    def __repr__(self): return self.label
+    def apply(self, data_frame):
+        # Second value is not a technical indicator, simply a number to compare
+        if isinstance(self.param2, (int, long, float)):
+            return data_frame[self.param1][-1] > self.param2
+        else: return data_frame[self.param1][-1] > data_frame[self.param2][-1]
+
+class Below(Criteria):
+    def __init__(self, param1, param2):
+        Criteria.__init__(self)
+        self.param1 = param1 # Technical indicator label
+        self.param2 = param2 # Technical indicator label or int or long or float
+        self.label = 'Below_%s_%s' %(param1, param2)
+        self.num_bars_required = 1
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'Below(param1=%s, param2=%s)' %(self.param1, self.param2)
+    def __repr__(self): return self.label
+    def apply(self, data_frame):
+        # Second value is not a technical indicator, simply a number to compare
+        if isinstance(self.param2, (int, long, float)):
+            return data_frame[self.param1][-1] < self.param2
+        else: return data_frame[self.param1][-1] < data_frame[self.param2][-1]
+
+class Equals(Criteria):
+    def __init__(self, param1, param2):
+        Criteria.__init__(self)
+        self.param1 = param1 # Technical indicator label
+        self.param2 = param2 # Technical indicator label or int or long or float
+        self.label = 'Equals_%s_%s' %(param1, param2)
+        self.num_bars_required = 1
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'Equals(param1=%s, param2=%s)' %(self.param1, self.param2)
+    def __repr__(self): return self.label
+    def apply(self, data_frame):
+        # Second value is not a technical indicator, simply a number to compare
+        if isinstance(self.param2, (int, long, float)):
+            return data_frame[self.param1][-1] == self.param2
+        else: return data_frame[self.param1][-1] == data_frame[self.param2][-1]
+Equal = Equals
+
 class InRange(Criteria):
     """
     Determines if a technical indicator is in between two values.

@@ -42,9 +42,9 @@ threshold_below = technical_indicator.Subtraction(random_forest.value, 5)
 test_dataset.add_technical_indicator(threshold_below)
 # Criteria
 # Current price is below the threshold of our random forest's prediction price
-enter_crit_long = criteria.Position(symbol.close, 'below', threshold_below.value)
+enter_crit_long = criteria.Below(symbol.close, threshold_below.value)
 # Current price is above the threshold of our random forest's prediction price
-enter_crit_short = criteria.Position(symbol.close, 'above', threshold_above.value)
+enter_crit_short = criteria.Above(symbol.close, threshold_above.value)
 # Exit after 5 days - as per the random forest's build parameters
 exit_crit_long = criteria.TimeSinceAction(symbol, Long(), 5)
 exit_crit_short = criteria.TimeSinceAction(symbol, Short(), 5)

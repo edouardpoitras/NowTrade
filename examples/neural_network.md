@@ -167,11 +167,11 @@ And there you have it!  You can clearly see what the 'TestNN' predictions where 
 
 Let's create our trading criteria, starting with some entry criteria.  We want to check if the stock's current price is 'below' the threshold_below value - this will indicate that the neural network is predicting that the stock price will go up by more than $5 in our prediction window.
 
-    enter_crit_long = criteria.Position(googl.close, 'below', threshold_below.value)
+    enter_crit_long = criteria.Below(googl.close, threshold_below.value)
 
 We also want to check if the current stock price is 'above' the threshold_above value, which would indicate that the neural network is predicting that the stock price will go down by more than $5 in our prediction window.
 
-    enter_crit_short = criteria.Position(symbol.close, 'above', threshold_above.value)
+    enter_crit_short = criteria.Above(symbol.close, threshold_above.value)
 
 As for our exit criteria, we only have one, and it would probably be wise if it matched our neural network training parameters from earlier.  We had trained the network to predict the price 1 day into the future.  Therefore, we should have an exit criteria that says, "When we've been in the market for 1 day(s), exit".
 
