@@ -1,5 +1,7 @@
 # NowTrade
 
+[![Coverage Status](https://coveralls.io/repos/edouardpoitras/NowTrade/badge.svg?branch=master&service=github)](https://coveralls.io/github/edouardpoitras/NowTrade?branch=master)
+
 NowTrade is an algorithmic trading library with a focus on creating powerful strategies using easily-readable and simple Python code.
 With the help of NowTrade, full blown stock/currency trading strategies, harnessing the power of machine learning, can be implemented with few lines of code.
 
