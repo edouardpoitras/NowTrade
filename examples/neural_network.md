@@ -167,18 +167,18 @@ And there you have it!  You can clearly see what the 'TestNN' predictions where 
 
 Let's create our trading criteria, starting with some entry criteria.  We want to check if the stock's current price is 'below' the threshold_below value - this will indicate that the neural network is predicting that the stock price will go up by more than $5 in our prediction window.
 
-    enter_crit_long = criteria.Position(googl.close, 'below', threshold_below.value)
+    enter_crit_long = criteria.Below(googl.close, threshold_below.value)
 
 We also want to check if the current stock price is 'above' the threshold_above value, which would indicate that the neural network is predicting that the stock price will go down by more than $5 in our prediction window.
 
-    enter_crit_short = criteria.Position(symbol.close, 'above', threshold_above.value)
+    enter_crit_short = criteria.Above(symbol.close, threshold_above.value)
 
 As for our exit criteria, we only have one, and it would probably be wise if it matched our neural network training parameters from earlier.  We had trained the network to predict the price 1 day into the future.  Therefore, we should have an exit criteria that says, "When we've been in the market for 1 day(s), exit".
 
-    exit_crit_long = criteria.TimeSinceAction(googl, Long(), 1)
-    exit_crit_short = criteria.TimeSinceAction(googl, Short(), 1)
+    exit_crit_long = criteria.BarsSinceLong(googl, 1)
+    exit_crit_short = criteria.BarsSinceShort(googl, 1)
 
-Pretty straightforward.  The TimeSinceAction criteria takes a stock, an action (such as Long(), Short(), LongExit(), ShortExit()), and a number of days/hours/minutes/etc.  The criteria will return true if the action specified has happened for the stock in the past X days/hours/minutes/etc -  In this case, if we have Long'ed and/or Short'ed googl exactly 1 days ago.
+Pretty straightforward.  The BarsSinceLong/BarsSinceShort/BarsSinceLongExit/BarsSinceShortExit criteria takes a stock and a number of bars. The criteria will return true if the specific action has happened for the stock in the past X bars -  In this case, if we have Long'ed and/or Short'ed googl exactly 1 day ago.
 
 We could have just as easily used +/- $5 from our stock price instead of the neural network prediction price. Then we could have checked if the neural network price fell outside that range to trade accordingly.
 

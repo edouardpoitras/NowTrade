@@ -81,7 +81,7 @@ Typically, this is the part where I would create the testing data set, but we've
 
 Our random forest technical indicator will spit out prediction prices, but we still need a threshold to determine whether or not we want to enter the trade.  Let's define a technical indicator that is $5 higher than the ensemble's prediction, and one that is $5 lower.
 
-_Note that we could have also simply used a Position criteria on the ensemble price and skipped the threshold step entirely._
+_Note that we could have also simply used a Above and Below criteria on the ensemble price and skipped the threshold step entirely._
 
     threshold_above = technical_indicator.Addition(random_forest.value, 5)
     test_dataset.add_technical_indicator(threshold_above)
@@ -133,18 +133,18 @@ Click [here](http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFr
 
 Let's create our trading criteria, starting with some entry criteria.  We want to check if the stock's current price is 'below' the threshold_below value - this will indicate that the random forest ensemble is predicting that the stock price will go up by more than $5 in our prediction window.
 
-    enter_crit_long = criteria.Position(symbol.close, 'below', threshold_below.value)
+    enter_crit_long = criteria.Below(symbol.close, threshold_below.value)
 
 We also want to check if the current stock price is 'above' the threshold_above value, which would indicate that the random forest ensemble is predicting that the stock price will go down by more than $5 in our prediction window.
 
-    enter_crit_short = criteria.Position(symbol.close, 'above', threshold_above.value)
+    enter_crit_short = criteria.Above(symbol.close, threshold_above.value)
 
 As for our exit criteria, we only have one, and it would probably be wise if it matched our ensemble fitting parameters from earlier.  We fit the model to predict the price 5 days into the future.  Therefore, we should have an exit criteria that says, "When we've been in the market for 5 days, exit".
 
-    exit_crit_long = criteria.TimeSinceAction(symbol, Long(), 5)
-    exit_crit_short = criteria.TimeSinceAction(symbol, Short(), 5)
+    exit_crit_long = criteria.BarsSinceLong(symbol, 5)
+    exit_crit_short = criteria.BarsSinceShort(symbol, 5)
 
-Pretty straightforward.  The TimeSinceAction criteria takes a stock, an action (such as Long(), Short(), LongExit(), ShortExit()), and a number of days/hours/minutes/etc.  The criteria will return true if the action specified has happened for the stock in the past X days/hours/minutes/etc -  In this case, if we have Long'ed and/or Short'ed GOOGL exactly 5 days ago.
+Pretty straightforward.  The BarsSinceLong/BarsSinceShort/BarsSinceLongExit/BarsSinceShortExit criteria takes a stock and a number of bars.  The criteria will return true if the specific action has happened for the stock in the past X bars -  In this case, if we have Long'ed and/or Short'ed GOOGL exactly 5 days ago.
 
 We could have just as easily used +/- $5 from our stock price instead of the random forest prediction price. Then we could have checked if the random forest price fell outside that range to trade accordingly.
 
