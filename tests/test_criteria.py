@@ -26,15 +26,13 @@ class TestTimeSinceAction(TestCriteria):
         crit = criteria.TimeSinceAction(self.one, ShortExit(), 2)
         self.assertFalse(crit.apply(self.data))
         crit = criteria.TimeSinceAction(self.one, ShortExit(), 1)
-        self.assertFalse(crit.apply(self.data))
-        crit = criteria.TimeSinceAction(self.one, ShortExit(), 0)
         self.assertTrue(crit.apply(self.data))
         crit = criteria.TimeSinceAction(self.one, Long(), 4)
         self.assertFalse(crit.apply(self.data))
         crit = criteria.TimeSinceAction(self.one, Long(), 5)
-        self.assertTrue(crit.apply(self.data))
-        crit = criteria.TimeSinceAction(self.one, Long(), 6)
         self.assertFalse(crit.apply(self.data))
+        crit = criteria.TimeSinceAction(self.one, Long(), 6)
+        self.assertTrue(crit.apply(self.data))
         crit = criteria.TimeSinceAction(self.one, ShortExit(), 0, 'under')
         self.assertFalse(crit.apply(self.data))
         crit = criteria.TimeSinceAction(self.one, ShortExit(), 1, 'under')
@@ -63,9 +61,9 @@ class TestTimeSinceAction(TestCriteria):
 class TestInMarket(TestCriteria):
     def test_in_market(self):
         crit = criteria.InMarket(self.one)
-        self.assertTrue(crit.apply(self.data))
-        self.assertFalse(crit.apply(self.data[:-1]))
-        self.assertFalse(crit.apply(self.data[:2]))
+        self.assertFalse(crit.apply(self.data))
+        self.assertTrue(crit.apply(self.data[:-1]))
+        self.assertTrue(crit.apply(self.data[:2]))
         self.assertTrue(crit.apply(self.data[:3]))
 
 class TestIsLong(TestCriteria):
@@ -78,8 +76,8 @@ class TestIsLong(TestCriteria):
 class TestIsShort(TestCriteria):
     def test_is_short(self):
         crit = criteria.IsShort(self.one)
-        self.assertTrue(crit.apply(self.data))
-        self.assertFalse(crit.apply(self.data[:-1]))
+        self.assertFalse(crit.apply(self.data))
+        self.assertTrue(crit.apply(self.data[:-1]))
         self.assertFalse(crit.apply(self.data[:2]))
 
 class TestIsYear(TestCriteria):

@@ -30,3 +30,5 @@ class Symbol(object):
         self.adj_close = '%s_Adj Close' %self.symbol
     def __repr__(self): return str(self.symbol)
     def __str__(self): return str(self.symbol)
+    def __hash__(self): return hash(self.symbol)
+    def __eq__(self, other): return self.symbol == other

@@ -21,7 +21,7 @@ class TimeSinceAction(Criteria):
         self.action = action.raw()
         self.periods = periods
         self.condition = str(condition).upper()
-        self.num_bars_required = self.periods + 1
+        self.num_bars_required = self.periods
         self.label = 'TimeSinceAction_%s_%s_%s_%s' %(symbol, action, periods, condition)
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
@@ -36,68 +36,50 @@ class TimeSinceAction(Criteria):
             values = data_frame['ACTIONS_%s' %self.symbol][-self.periods:].values
             return self.action in values
         else:
-            if len(data_frame['ACTIONS_%s' %self.symbol]) > self.periods:
-                return self.action == data_frame['ACTIONS_%s' %self.symbol][-1-self.periods]
+            if len(data_frame['ACTIONS_%s' %self.symbol]) >= self.num_bars_required:
+                return self.action == data_frame['ACTIONS_%s' %self.symbol][-self.periods]
             return False
 
 class InMarket(Criteria):
-    """
-    Looks one period behind the current period because it expects the last
-    period to be the current data coming in (unprocessed).
-    This criteria will help determine what data_frame[STATUS_%s][-1] will become.
-    We need to check data_frame[STATUS_%s][-2] instead.
-    """
     def __init__(self, symbol):
         Criteria.__init__(self)
         self.symbol = str(symbol)
         self.label = 'InMarket_%s' %symbol
-        self.num_bars_required = 2
+        self.num_bars_required = 1
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
         return 'InMarket(symbol=%s)' %self.symbol
     def __repr__(self): return self.label
     def apply(self, data_frame):
-        try: return data_frame['STATUS_%s' %self.symbol][-2] != 0
+        try: return data_frame['STATUS_%s' %self.symbol][-1] != 0
         except: return False
 
 class IsLong(Criteria):
-    """
-    Looks one period behind the current period because it expects the last
-    period to be the current data coming in (unprocessed).
-    This criteria will help determine what data_frame[STATUS_%s][-1] will become.
-    We need to check data_frame[STATUS_%s][-2] instead.
-    """
     def __init__(self, symbol):
         Criteria.__init__(self)
         self.symbol = str(symbol)
         self.label = 'IsLong_%s' %symbol
-        self.num_bars_required = 2
+        self.num_bars_required = 1
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
         return 'IsLong(symbol=%s)' %self.symbol
     def __repr__(self): return self.label
     def apply(self, data_frame):
-        try: return data_frame['STATUS_%s' %self.symbol][-2] > 0
+        try: return data_frame['STATUS_%s' %self.symbol][-1] > 0
         except: return False
 
 class IsShort(Criteria):
-    """
-    Looks one period behind the current period because it expects the last
-    period to be the current data coming in (unprocessed).
-    This criteria will help determine what data_frame[STATUS_%s][-1] will become.
-    We need to check data_frame[STATUS_%s][-2] instead.
-    """
     def __init__(self, symbol):
         Criteria.__init__(self)
         self.symbol = str(symbol)
         self.label = 'IsShort_%s' %symbol
-        self.num_bars_required = 2
+        self.num_bars_required = 1
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
         return 'IsShort(symbol=%s)' %self.symbol
     def __repr__(self): return self.label
     def apply(self, data_frame):
-        try: return data_frame['STATUS_%s' %self.symbol][-2] < 0
+        try: return data_frame['STATUS_%s' %self.symbol][-1] < 0
         except: return False
 
 class StopLoss(Criteria):
@@ -146,10 +128,9 @@ class TrailingStop(Criteria):
     def __init__(self, symbol, value, short=False, percent=False):
         Criteria.__init__(self)
         self.symbol = symbol
-        self.value = abs(value)
+        self.value = value
         self.short = short
         self.percent = percent
-        self.stop_value = None
         self.label = 'TrailingStop_%s_%s_%s_%s' %(symbol, value, short, percent)
         self.num_bars_required = 1
         self.logger.info('Initialized - %s' %self)
@@ -160,31 +141,9 @@ class TrailingStop(Criteria):
         if self.percent: check_value = data_frame['PL_PERCENT_%s' %self.symbol][-1]
         else: check_value = data_frame['PL_VALUE_%s' %self.symbol][-1]
         if not np.isnan(check_value):
-            if self.short: return self._handle_short(check_value)
-            else: return self._handle_long(check_value)
-        else:
-            self.stop_value = None
-            return False
-
-    def _handle_long(self, check_value):
-        if self.stop_value:
-            if self.stop_value >= check_value: return True
-            elif check_value >= self.stop_value + self.value:
-                self.stop_value = check_value - self.value
-            return False
-        else:
-            self.stop_value = check_value - self.value
-            return False
-
-    def _handle_short(self, check_value):
-        if self.stop_value:
-            if self.stop_value <= check_value: return True
-            elif check_value <= self.stop_value - self.value:
-                self.stop_value = check_value + self.value
-            return False
-        else:
-            self.stop_value = check_value + self.value
-            return False
+            if self.short: return self.value <= check_value
+            else: return self.value >= check_value
+        return False
 
 class IsYear(Criteria):
     def __init__(self, year):

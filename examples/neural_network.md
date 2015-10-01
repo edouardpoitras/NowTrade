@@ -220,4 +220,29 @@ If you installed the matplotlib python library, you can see some pretty charts w
 
 See the figures example [here](figures.md).
 
+Once a strategy has run, we can do the following to see if the strategy calls for another trade on the upcoming bar:
+
+    next_action = strategy.get_next_action()
+
+If the ```next_action``` dictionary is not empty, we can examine it to determine what action to take in the market:
+
+    action = next_action[googl]
+
+    # One of 'LONG', 'SHORT', 'LONG_EXIT', 'SHORT_EXIT'
+    print action['action_name']
+
+    # Will always be 'OPEN' indicating to perform the action on the OPEN of the next bar
+    print action['enter_on']
+
+    # Uses the CLOSE of the current bar to estimate the price of the next OPEN
+    print action['estimated_enter_value']
+
+    # Uses the estimated_enter_value to determine the number of shares to buy/sell
+    print action['estimated_shares'] # Based on your trading profile selected
+
+    # Uses the estimaged_enter_value and estimaged_shares to determine the money required for the trade
+    print action['estimated_money_required']
+
+This information can be used during live trading.
+
 How did it do?  Add some data points, tweak some parameters, train for more iterations!```

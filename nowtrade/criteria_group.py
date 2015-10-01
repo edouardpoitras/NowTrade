@@ -17,7 +17,6 @@ class CriteriaGroup:
         self.action = action
         self._action = 0
         self.symbol = str(symbol)
-        self._results_first_time = True
         # Added Actions Criteria Automatically
         if self.action == Long():
             self.criteria_list.append(Not(InMarket(self.symbol)))
@@ -48,17 +47,7 @@ class CriteriaGroup:
         if False in series.values: return NO_ACTION
         else: return self._action
 
-    def _create_actions_status_columns(self, data_frame, symbol):
-        cols = data_frame.columns
-        try: cols.get_loc('ACTIONS_%s' %symbol)
-        except KeyError, e: data_frame['ACTIONS_%s' %symbol] = NO_ACTION
-        try: cols.get_loc('STATUS_%s' %symbol)
-        except KeyError, e: data_frame['STATUS_%s' %symbol] = NO_ACTION
-
     def get_result(self, data_frame):
-        if self._results_first_time: # First time getting results
-            self._create_actions_status_columns(data_frame, self.symbol)
-            self._results_first_time = False
         results = []
         for criteria in self.criteria_list:
             result = None
