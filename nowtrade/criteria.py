@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from nowtrade import logger
+from nowtrade import action
 
 class Criteria(object):
     """
@@ -14,18 +15,18 @@ class Criteria(object):
         # Some TIs don't require the entire data_frame history.
         self.num_bars_required = None # Requires all history by default
 
-class TimeSinceAction(Criteria):
+class BarsSinceAction(Criteria):
     def __init__(self, symbol, action, periods, condition=None):
         Criteria.__init__(self)
         self.symbol = str(symbol)
         self.action = action.raw()
         self.periods = periods
         self.condition = str(condition).upper()
-        self.num_bars_required = self.periods
-        self.label = 'TimeSinceAction_%s_%s_%s_%s' %(symbol, action, periods, condition)
+        self.num_bars_required = self.periods + 1
+        self.label = 'BarsSinceAction_%s_%s_%s_%s' %(symbol, action, periods, condition)
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
-        return 'TimeSinceAction(symbol=%s, action=%s, periods=%s, condition=%s)' %(self.symbol, self.action, self.periods, self.condition)
+        return 'BarsSinceAction(symbol=%s, action=%s, periods=%s, condition=%s)' %(self.symbol, self.action, self.periods, self.condition)
     def __repr__(self): return self.label
     def apply(self, data_frame):
         if self.condition == 'OVER':
@@ -39,6 +40,31 @@ class TimeSinceAction(Criteria):
             if len(data_frame['ACTIONS_%s' %self.symbol]) >= self.num_bars_required:
                 return self.action == data_frame['ACTIONS_%s' %self.symbol][-self.periods]
             return False
+
+class BarsSinceLong(BarsSinceAction):
+    def __init__(self, symbol, periods, condition=None):
+        BarsSinceAction.__init__(self, symbol, action.Long(), periods, condition)
+        self.label = 'BarsSinceLong_%s_%s_%s' %(symbol, periods, condition)
+    def __str__(self):
+        return 'BarsSinceLong(symbol=%s, periods=%s, condition=%s)' %(self.symbol, self.periods, self.condition)
+class BarsSinceShort(BarsSinceAction):
+    def __init__(self, symbol, periods, condition=None):
+        BarsSinceAction.__init__(self, symbol, action.Short(), periods, condition)
+        self.label = 'BarsSinceShort_%s_%s_%s' %(symbol, periods, condition)
+    def __str__(self):
+        return 'BarsSinceShort(symbol=%s, periods=%s, condition=%s)' %(self.symbol, self.periods, self.condition)
+class BarsSinceLongExit(BarsSinceAction):
+    def __init__(self, symbol, periods, condition=None):
+        BarsSinceAction.__init__(self, symbol, action.LongExit(), periods, condition)
+        self.label = 'BarsSinceLongExit_%s_%s_%s' %(symbol, periods, condition)
+    def __str__(self):
+        return 'BarsSinceLongExit(symbol=%s, periods=%s, condition=%s)' %(self.symbol, self.periods, self.condition)
+class BarsSinceShortExit(BarsSinceAction):
+    def __init__(self, symbol, periods, condition=None):
+        BarsSinceAction.__init__(self, symbol, action.ShortExit(), periods, condition)
+        self.label = 'BarsSinceShortExit_%s_%s_%s' %(symbol, periods, condition)
+    def __str__(self):
+        return 'BarsSinceShortExit(symbol=%s, periods=%s, condition=%s)' %(self.symbol, self.periods, self.condition)
 
 class InMarket(Criteria):
     def __init__(self, symbol):
@@ -240,6 +266,66 @@ class Position(Criteria):
                 results = data_frame[self.param1] < data_frame[self.param2]
             else: results = data_frame[self.param1] == data_frame[self.param2]
         return results.iloc[-1]
+
+class Above(Criteria):
+    def __init__(self, param1, param2, lookback=1):
+        Criteria.__init__(self)
+        self.param1 = param1 # Technical indicator label
+        self.param2 = param2 # Technical indicator label or int or long or float
+        self.lookback = lookback
+        self.label = 'Above_%s_%s_%s' %(param1, param2, lookback)
+        self.num_bars_required = lookback
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'Above(param1=%s, param2=%s, lookback=%s)' %(self.param1, self.param2, self.lookback)
+    def __repr__(self): return self.label
+    def apply(self, data_frame):
+        if len(data_frame) < self.lookback: return False
+        # Second value is not a technical indicator, simply a number to compare
+        if isinstance(self.param2, (int, long, float)):
+            print 'comparing %s with %s' %(data_frame[self.param1][-self.lookback], self.param2)
+            return data_frame[self.param1][-self.lookback] > self.param2
+        else: return data_frame[self.param1][-self.lookback] > data_frame[self.param2][-self.lookback]
+
+class Below(Criteria):
+    def __init__(self, param1, param2, lookback=1):
+        Criteria.__init__(self)
+        self.param1 = param1 # Technical indicator label
+        self.param2 = param2 # Technical indicator label or int or long or float
+        self.lookback = lookback
+        self.label = 'Below_%s_%s_%s' %(param1, param2, lookback)
+        self.num_bars_required = lookback
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'Below(param1=%s, param2=%s, lookback=%s)' %(self.param1, self.param2, self.lookback)
+    def __repr__(self): return self.label
+    def apply(self, data_frame):
+        if len(data_frame) < self.lookback: return False
+        # Second value is not a technical indicator, simply a number to compare
+        if isinstance(self.param2, (int, long, float)):
+            return data_frame[self.param1][-self.lookback] < self.param2
+        else: return data_frame[self.param1][-self.lookback] < data_frame[self.param2][-self.lookback]
+
+class Equals(Criteria):
+    def __init__(self, param1, param2, lookback=1):
+        Criteria.__init__(self)
+        self.param1 = param1 # Technical indicator label
+        self.param2 = param2 # Technical indicator label or int or long or float
+        self.lookback = lookback
+        self.label = 'Equals_%s_%s_%s' %(param1, param2, lookback)
+        self.num_bars_required = lookback
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'Equals(param1=%s, param2=%s, lookback=%s)' %(self.param1, self.param2, self.lookback)
+    def __repr__(self): return self.label
+    def apply(self, data_frame):
+        if len(data_frame) < self.lookback: return False
+        # Second value is not a technical indicator, simply a number to compare
+        if isinstance(self.param2, (int, long, float)):
+            print 'comparing %s and %s' %(data_frame[self.param1][-self.lookback], self.param2)
+            return data_frame[self.param1][-self.lookback] == self.param2
+        else: return data_frame[self.param1][-self.lookback] == data_frame[self.param2][-self.lookback]
+Equal = Equals
 
 class InRange(Criteria):
     """
