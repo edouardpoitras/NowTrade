@@ -309,55 +309,63 @@ class Position(Criteria):
         return results.iloc[-1]
 
 class Above(Criteria):
-    def __init__(self, param1, param2):
+    def __init__(self, param1, param2, lookback=1):
         Criteria.__init__(self)
         self.param1 = param1 # Technical indicator label
         self.param2 = param2 # Technical indicator label or int or long or float
-        self.label = 'Above_%s_%s' %(param1, param2)
-        self.num_bars_required = 1
+        self.lookback = lookback
+        self.label = 'Above_%s_%s_%s' %(param1, param2, lookback)
+        self.num_bars_required = lookback
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
-        return 'Above(param1=%s, param2=%s)' %(self.param1, self.param2)
+        return 'Above(param1=%s, param2=%s, lookback=%s)' %(self.param1, self.param2, self.lookback)
     def __repr__(self): return self.label
     def apply(self, data_frame):
+        if len(data_frame) < self.lookback: return False
         # Second value is not a technical indicator, simply a number to compare
         if isinstance(self.param2, (int, long, float)):
-            return data_frame[self.param1][-1] > self.param2
-        else: return data_frame[self.param1][-1] > data_frame[self.param2][-1]
+            print 'comparing %s with %s' %(data_frame[self.param1][-self.lookback], self.param2)
+            return data_frame[self.param1][-self.lookback] > self.param2
+        else: return data_frame[self.param1][-self.lookback] > data_frame[self.param2][-self.lookback]
 
 class Below(Criteria):
-    def __init__(self, param1, param2):
+    def __init__(self, param1, param2, lookback=1):
         Criteria.__init__(self)
         self.param1 = param1 # Technical indicator label
         self.param2 = param2 # Technical indicator label or int or long or float
-        self.label = 'Below_%s_%s' %(param1, param2)
-        self.num_bars_required = 1
+        self.lookback = lookback
+        self.label = 'Below_%s_%s_%s' %(param1, param2, lookback)
+        self.num_bars_required = lookback
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
-        return 'Below(param1=%s, param2=%s)' %(self.param1, self.param2)
+        return 'Below(param1=%s, param2=%s, lookback=%s)' %(self.param1, self.param2, self.lookback)
     def __repr__(self): return self.label
     def apply(self, data_frame):
+        if len(data_frame) < self.lookback: return False
         # Second value is not a technical indicator, simply a number to compare
         if isinstance(self.param2, (int, long, float)):
-            return data_frame[self.param1][-1] < self.param2
-        else: return data_frame[self.param1][-1] < data_frame[self.param2][-1]
+            return data_frame[self.param1][-self.lookback] < self.param2
+        else: return data_frame[self.param1][-self.lookback] < data_frame[self.param2][-self.lookback]
 
 class Equals(Criteria):
-    def __init__(self, param1, param2):
+    def __init__(self, param1, param2, lookback=1):
         Criteria.__init__(self)
         self.param1 = param1 # Technical indicator label
         self.param2 = param2 # Technical indicator label or int or long or float
-        self.label = 'Equals_%s_%s' %(param1, param2)
-        self.num_bars_required = 1
+        self.lookback = lookback
+        self.label = 'Equals_%s_%s_%s' %(param1, param2, lookback)
+        self.num_bars_required = lookback
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
-        return 'Equals(param1=%s, param2=%s)' %(self.param1, self.param2)
+        return 'Equals(param1=%s, param2=%s, lookback=%s)' %(self.param1, self.param2, self.lookback)
     def __repr__(self): return self.label
     def apply(self, data_frame):
+        if len(data_frame) < self.lookback: return False
         # Second value is not a technical indicator, simply a number to compare
         if isinstance(self.param2, (int, long, float)):
-            return data_frame[self.param1][-1] == self.param2
-        else: return data_frame[self.param1][-1] == data_frame[self.param2][-1]
+            print 'comparing %s and %s' %(data_frame[self.param1][-self.lookback], self.param2)
+            return data_frame[self.param1][-self.lookback] == self.param2
+        else: return data_frame[self.param1][-self.lookback] == data_frame[self.param2][-self.lookback]
 Equal = Equals
 
 class InRange(Criteria):

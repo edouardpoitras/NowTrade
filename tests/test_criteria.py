@@ -119,6 +119,11 @@ class TestPositions(TestCriteria):
         self.assertEqual(value, False)
         value = crit.apply(self.data.head(3))
         self.assertEqual(value, True)
+        crit = criteria.Above('TWO', 4, 3)
+        value = crit.apply(self.data.head(3))
+        self.assertEqual(value, True)
+        crit = criteria.Below('TWO', 6, 2)
+        self.assertEqual(value, True)
         crit = criteria.Below('ONE', 5)
         value = crit.apply(self.data.head(1))
         self.assertEqual(value, True)
@@ -145,6 +150,11 @@ class TestPositions(TestCriteria):
         self.assertEqual(value, True)
         value = crit.apply(self.data.head(4))
         self.assertEqual(value, False)
+        crit = criteria.Above('ONE', 10, 1)
+        value = crit.apply(self.data.head(4))
+        self.assertEqual(value, True)
+        crit = criteria.Equals('ONE', 12, 3)
+        self.assertEqual(value, True)
 
 class TestInRange(TestCriteria):
     def test_in_range(self):
