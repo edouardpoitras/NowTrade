@@ -5,7 +5,7 @@ import uuid
 import pandas as pd
 import numpy as np
 from nowtrade import logger
-from nowtrade.action import LONG, SHORT, NO_ACTION, LONG_EXIT, SHORT_EXIT
+from nowtrade.action import LONG, SHORT, NO_ACTION, LONG_EXIT, SHORT_EXIT, ACTIONS_MAP
 from nowtrade import report
 
 # In process_new_data, when iterating through cg_data, we get the warning defined here:
@@ -15,31 +15,36 @@ from nowtrade import report
 pd.options.mode.chained_assignment = None
 
 class Strategy:
-    def __init__(self, dataset, criteria_groups, trading_profile, enter_on='Close', exit_on='Close'):
+    """
+    All strategies perform the enter and exit actions on the OPEN of the bar.
+    On every day, criterias are checked, and actions are queued up for the next
+    open. This prevents lookahead bias.
+    """
+    def __init__(self, dataset, criteria_groups, trading_profile):
         self.dataset = dataset
         self.criteria_groups = criteria_groups
         self.trading_profile = trading_profile
-        self.enter_on = enter_on
-        self.exit_on = exit_on
         self.name = 'Strategy'
         self.report = report.Report(self, self.trading_profile)
         self.realtime_data_frame = pd.DataFrame() # Used for backtesting
+        self.first_pass = True # Flag to execute certain actions on first bar of backtest
+        self.upcoming_actions = {}
         self.logger = logger.Logger(self.__class__.__name__)
         self.logger.info('Initialized - %s' %self)
 
     def __str__(self):
-        return 'Strategy(dataset=%s, criteria_groups=%s, trading_profile=%s, enter_on=%s, exit_on=%s)' %(self.dataset, self.criteria_groups, self.trading_profile, self.enter_on, self.exit_on)
+        return 'Strategy(dataset=%s, criteria_groups=%s, trading_profile=%s)' %(self.dataset, self.criteria_groups, self.trading_profile)
     def __repr__(self):
-        return 'Strategy(dataset=%s, criteria_groups=%s, trading_profile=%s, enter_on=%s, exit_on=%s)' %(self.dataset, self.criteria_groups, self.trading_profile, self.enter_on, self.exit_on)
+        return 'Strategy(dataset=%s, criteria_groups=%s, trading_profile=%s)' %(self.dataset, self.criteria_groups, self.trading_profile)
 
-    def simulate(self, lookback_period=None):
+    def simulate(self):
         self.logger.info('Simulating strategy...')
         self.realtime_data_frame = pd.DataFrame()
         for row_data in self.dataset.data_frame.iterrows():
             data = row_data[1].to_frame().T
-            self.process_new_data(data, lookback_period)
+            self.process_new_data(data)
 
-    def process_new_data(self, data, lookback_period=None):
+    def process_new_data(self, data):
         """
         Real-time trading method.
         Here we're assuming that data holds all the
@@ -50,14 +55,23 @@ class Strategy:
         many time slices of data can be contained in data.
         However, more data means more computationally
         intensive.
-        @todo: This can be optimized by limiting the number
-        of lookback for the TI/Criteria calculations.
         """
         self.logger.debug(data.index[-1])
         self.realtime_data_frame = self.realtime_data_frame.combine_first(data)
         # Process Standard Metrics
         for symbol in self.dataset.symbol_list:
+            if self.first_pass: self._create_actions_status_columns(self.realtime_data_frame, symbol)
+            # Add previous action and status to dataset
+            # Keep track of market actions for each symbol
+            try: self.realtime_data_frame['ACTIONS_%s' %symbol][-1] = self.upcoming_actions[symbol]
+            except: self.realtime_data_frame['ACTIONS_%s' %symbol][-1] = NO_ACTION
+            # Keep track of market position for each symbol
+            self.realtime_data_frame['STATUS_%s' %symbol][-1] = self._get_status(symbol)
+            # Update the PL's
             self.report.add_preprocess_metrics(str(symbol), self.realtime_data_frame)
+            # Update Report
+            self.report.handle_action(symbol, self.realtime_data_frame)
+        self.first_pass = False
         # Process criteria
         cg_data = {}
         for cg in self.criteria_groups:
@@ -68,14 +82,29 @@ class Strategy:
         # Determine action based on all criteria group results
         for symbol in cg_data:
             symbol_action = self._determine_action(cg_data[symbol])
-            self.logger.debug('%s: %s' %(symbol, symbol_action))
-            # Keep track of market actions for each symbol
-            self.realtime_data_frame['ACTIONS_%s' %symbol][-1] = symbol_action
-            # Keep track of market position for each symbol
-            self.realtime_data_frame['STATUS_%s' %symbol][-1] = self._get_status(symbol)
-            # Update Report
-            self.report.handle_action(symbol, self.realtime_data_frame)
+            self.logger.debug('Upcoming Action for %s: %s' %(symbol, symbol_action))
+            # Do the action on the Open of the next bar
+            self.upcoming_actions[symbol] = symbol_action
         self.logger.debug('New data:\n%s' %self.realtime_data_frame.tail(1).to_string())
+
+    def get_next_action(self):
+        """
+        Estimated shares and money required is based on the Close of the last bar.
+        The action should always be executed on the Open of the next bar.
+        """
+        actions = {}
+        for symbol in self.upcoming_actions:
+            action = self.upcoming_actions[symbol]
+            estimated_enter_value = self.realtime_data_frame['%s_Open' %symbol][-1]
+            estimated_shares = self.trading_profile.trading_amount.get_shares(estimated_enter_value, self.report.available_money)
+            actions[symbol] = {'action': action,
+                               'action_name': ACTIONS_MAP[action],
+                               'enter_on': 'OPEN',
+                               'estimated_enter_value': estimated_enter_value,
+                               'estimated_shares': estimated_shares,
+                               'estimated_fees': self.trading_profile.trading_fee.get_fee(estimated_enter_value, estimated_shares),
+                               'estimated_money_required': estimated_enter_value * estimated_shares}
+        return actions
 
     def _determine_action(self, values):
         """
@@ -99,3 +128,10 @@ class Strategy:
         elif action == SHORT_EXIT: action = 1
         if len(self.realtime_data_frame) < 2: return action
         else: return self.realtime_data_frame['STATUS_%s' %symbol][-2] + action
+
+    def _create_actions_status_columns(self, data_frame, symbol):
+        cols = data_frame.columns
+        try: cols.get_loc('ACTIONS_%s' %symbol)
+        except KeyError, e: data_frame['ACTIONS_%s' %symbol] = NO_ACTION
+        try: cols.get_loc('STATUS_%s' %symbol)
+        except KeyError, e: data_frame['STATUS_%s' %symbol] = NO_ACTION

@@ -42,34 +42,58 @@ class Report:
     def add_preprocess_metrics(self, symbol, data_frame):
         """
         Adds required metrics for certain criteria that can't be easily added
-        as technical indicators.  IE: P/L
+        as technical indicators.  IE: P/L, ACTIONS, STATUS, etc
         This only updates the last data entry.
         """
         if symbol not in self.ongoing_trades:
             self.ongoing_trades[symbol] = None
         if 'PL_%s' %symbol not in data_frame:
             data_frame['PL_%s' %symbol] = pd.Series(index=data_frame.index)
-        if 'PL_VALUE_%s' %symbol not in data_frame:
-            data_frame['PL_VALUE_%s' %symbol] = pd.Series(index=data_frame.index)
-        if 'PL_PERCENT_%s' %symbol not in data_frame:
-            data_frame['PL_PERCENT_%s' %symbol] = pd.Series(index=data_frame.index)
+        if 'CHANGE_VALUE_%s' %symbol not in data_frame:
+            data_frame['CHANGE_VALUE_%s' %symbol] = pd.Series(index=data_frame.index)
+        if 'CHANGE_PERCENT_%s' %symbol not in data_frame:
+            data_frame['CHANGE_PERCENT_%s' %symbol] = pd.Series(index=data_frame.index)
         trade = self.ongoing_trades[symbol]
-        if trade:
-            status = data_frame['STATUS_%s' %symbol][-1]
-            enter_value = data_frame['%s_%s' %(symbol, self.strategy.enter_on)][trade.datetime]
-            current_value = data_frame['%s_Close' %symbol][-1]
-            enter_change = current_value - enter_value
-            pl = trade.shares * current_value - trade.money
-            percent_change = pl / trade.money
+        status = data_frame['STATUS_%s' %symbol][-1]
+        action = data_frame['ACTIONS_%s' %symbol][-1]
+        open_value = data_frame['%s_Open' %symbol][-1]
+        close_value = data_frame['%s_Close' %symbol][-1]
+        change = close_value - open_value
+        exiting = action == LONG_EXIT or action == SHORT_EXIT
+        if trade and exiting: # Exiting Ongoing Trade
+            enter_change = open_value - trade.price
+            percent_change = enter_change / trade.price
+            pl = percent_change * trade.money
+            if action == SHORT_EXIT: # Shorting
+                pl = pl * -1
+            data_frame['PL_%s' %symbol][-1] = pl
+            data_frame['CHANGE_VALUE_%s' %symbol][-1] = enter_change
+            data_frame['CHANGE_PERCENT_%s' %symbol][-1] = percent_change
+        elif trade: # Ongoing Trade
+            enter_close_value = data_frame['%s_Close' %symbol][trade.datetime]
+            enter_change = close_value - trade.price
+            percent_change = enter_change / trade.price
+            pl = percent_change * trade.money
             if status < 0: # Shorting
                 pl = pl * -1
             data_frame['PL_%s' %symbol][-1] = pl
-            data_frame['PL_VALUE_%s' %symbol][-1] = enter_change
-            data_frame['PL_PERCENT_%s' %symbol][-1] = percent_change
-        else:
+            data_frame['CHANGE_VALUE_%s' %symbol][-1] = enter_change
+            data_frame['CHANGE_PERCENT_%s' %symbol][-1] = percent_change
+        elif data_frame['ACTIONS_%s' %symbol][-1] != 0: # New Enter/Exit Trade
+            shares = self.trading_profile.trading_amount.get_shares(open_value, self.available_money)
+            fee = self.trading_profile.trading_fee.get_fee(open_value, shares)
+            money = open_value * shares
+            pl = shares * close_value - money
+            percent_change = pl / money
+            if status < 0: # Shorting
+                pl = pl * -1
+            data_frame['PL_%s' %symbol][-1] = pl
+            data_frame['CHANGE_VALUE_%s' %symbol][-1] = change
+            data_frame['CHANGE_PERCENT_%s' %symbol][-1] = percent_change
+        else: # Not in trade
             data_frame['PL_%s' %symbol][-1] = np.nan
-            data_frame['PL_VALUE_%s' %symbol][-1] = np.nan
-            data_frame['PL_PERCENT_%s' %symbol][-1] = np.nan
+            data_frame['CHANGE_VALUE_%s' %symbol][-1] = np.nan
+            data_frame['CHANGE_PERCENT_%s' %symbol][-1] = np.nan
         self._require_finalize_calculations = True
 
     def handle_action(self, symbol, data_frame):
@@ -82,7 +106,7 @@ class Report:
         elif action == SHORT_EXIT: self.short_exit(data, datetime, symbol)
 
     def long(self, data, datetime, symbol):
-        price = data['%s_%s' %(symbol, self.strategy.enter_on)]
+        price = data['%s_Open' %symbol]
         shares = self.trading_profile.trading_amount.get_shares(price, self.available_money)
         fee = self.trading_profile.trading_fee.get_fee(price, shares)
         money = price * shares
@@ -99,7 +123,7 @@ class Report:
         self.available_capital_history[datetime] = self.capital
 
     def short(self, data, datetime, symbol):
-        price = data['%s_%s' %(symbol, self.strategy.enter_on)]
+        price = data['%s_Open' %symbol]
         shares = self.trading_profile.trading_amount.get_shares(price, self.available_money)
         fee = self.trading_profile.trading_fee.get_fee(price, shares)
         money = price * shares
@@ -120,7 +144,7 @@ class Report:
             return
         trade = self.ongoing_trades[symbol]
         self.ongoing_trades[symbol] = None
-        price = data['%s_%s' %(symbol, self.strategy.exit_on)]
+        price = data['%s_Open' %symbol]
         fee = self.trading_profile.trading_fee.get_fee(price, trade.shares)
         money = price * trade.shares
         slippage = money * self.trading_profile.slippage / 100
@@ -154,7 +178,7 @@ class Report:
             return
         trade = self.ongoing_trades[symbol]
         self.ongoing_trades[symbol] = None
-        price = data['%s_%s' %(symbol, self.strategy.exit_on)]
+        price = data['%s_Open' %symbol]
         fee = self.trading_profile.trading_fee.get_fee(price, trade.shares)
         money = price * trade.shares
         slippage = money * self.trading_profile.slippage / 100

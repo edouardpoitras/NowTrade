@@ -11,8 +11,6 @@ class TestCriteriaGroup(unittest.TestCase):
         cg = criteria_group.CriteriaGroup(criteria_list, Long(), 'MSFT')
         self.assertEqual(cg._action, 1)
         out = cg.get_result(msft_data)
-        self.assertIn('ACTIONS_MSFT', msft_data.columns)
-        self.assertIn('STATUS_MSFT', msft_data.columns)
         self.assertEqual(len(cg.criteria_list), 3) # One extra: NotInMarket
         self.assertEqual(out, strategy.LONG)
         criteria_list = [DummyCriteria(True), DummyCriteria(False)]

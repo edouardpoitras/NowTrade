@@ -106,8 +106,8 @@ class Figure():
         actions = actions[actions != 0]
         for dt, action in actions.iteritems():
             row = self.data_frame.loc[self.data_frame['Date'] == dt]
-            enter_value = row['%s_%s' %(symbol, self.strategy.enter_on)]
-            exit_value = row['%s_%s' %(symbol, self.strategy.exit_on)]
+            enter_value = row['%s_Open' %symbol]
+            exit_value = row['%s_Open' %symbol]
             if action == LONG:
                 ax.annotate('Long', xy=(dt, enter_value),
                    xytext=(dt, enter_value + 0.1),

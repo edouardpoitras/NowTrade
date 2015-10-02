@@ -6,6 +6,12 @@ NO_ACTION = 0
 LONG_EXIT = -1
 SHORT_EXIT = -2
 
+ACTIONS_MAP = {1: 'LONG',
+               2: 'SHORT',
+               0: 'NO_ACTION',
+               -1: 'LONG_EXIT',
+               -2: 'SHORT_EXIT'}
+
 class Action:
     """
     Abstract Action object represents an action to be taken in the market.

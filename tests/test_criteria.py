@@ -15,7 +15,7 @@ class TestCriteria(unittest.TestCase):
                                   [20, 1, 9.0, NO_ACTION, 0, -10, -0.10, -0.01],
                                   [25, 0, 10.0, SHORT, -1, -20, 0.0, -0.02],
                                   [30, -1, 11.0, SHORT_EXIT, 0, 0, 0.10, -0.03]],
-                                 columns=['ONE', 'TWO', 'THREE', 'ACTIONS_ONE', 'STATUS_ONE', 'PL_ONE', 'PL_VALUE_ONE', 'PL_PERCENT_ONE'],
+                                 columns=['ONE', 'TWO', 'THREE', 'ACTIONS_ONE', 'STATUS_ONE', 'PL_ONE', 'CHANGE_VALUE_ONE', 'CHANGE_PERCENT_ONE'],
                                  index=pd.date_range('20100601', periods=7))
         self.one = Symbol('ONE')
         self.two = Symbol('TWO')
@@ -63,9 +63,9 @@ class TestBarsSinceAction(TestCriteria):
 class TestInMarket(TestCriteria):
     def test_in_market(self):
         crit = criteria.InMarket(self.one)
-        self.assertTrue(crit.apply(self.data))
-        self.assertFalse(crit.apply(self.data[:-1]))
-        self.assertFalse(crit.apply(self.data[:2]))
+        self.assertFalse(crit.apply(self.data))
+        self.assertTrue(crit.apply(self.data[:-1]))
+        self.assertTrue(crit.apply(self.data[:2]))
         self.assertTrue(crit.apply(self.data[:3]))
 
 class TestIsLong(TestCriteria):
@@ -78,8 +78,8 @@ class TestIsLong(TestCriteria):
 class TestIsShort(TestCriteria):
     def test_is_short(self):
         crit = criteria.IsShort(self.one)
-        self.assertTrue(crit.apply(self.data))
-        self.assertFalse(crit.apply(self.data[:-1]))
+        self.assertFalse(crit.apply(self.data))
+        self.assertTrue(crit.apply(self.data[:-1]))
         self.assertFalse(crit.apply(self.data[:2]))
 
 class TestIsYear(TestCriteria):
