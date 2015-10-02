@@ -123,8 +123,8 @@ class StopLoss(Criteria):
         return 'StopLoss(symbol=%s, value=%s, short=%s, percent=%s)' %(self.symbol, self.value, self.short, self.percent)
     def __repr__(self): return self.label
     def apply(self, data_frame):
-        if self.percent: check_value = data_frame['PL_PERCENT_%s' %self.symbol][-1]
-        else: check_value = data_frame['PL_VALUE_%s' %self.symbol][-1]
+        if self.percent: check_value = data_frame['CHANGE_PERCENT_%s' %self.symbol][-1]
+        else: check_value = data_frame['CHANGE_VALUE_%s' %self.symbol][-1]
         if not np.isnan(check_value):
             if self.short: return check_value >= self.value
             else: return check_value <= -self.value
@@ -164,8 +164,8 @@ class TrailingStop(Criteria):
         return 'TrailingStop(symbol=%s, value=%s, short=%s, percent=%s)' %(self.symbol, self.value, self.short, self.percent)
     def __repr__(self): return self.label
     def apply(self, data_frame):
-        if self.percent: check_value = data_frame['PL_PERCENT_%s' %self.symbol][-1]
-        else: check_value = data_frame['PL_VALUE_%s' %self.symbol][-1]
+        if self.percent: check_value = data_frame['CHANGE_PERCENT_%s' %self.symbol][-1]
+        else: check_value = data_frame['CHANGE_VALUE_%s' %self.symbol][-1]
         if not np.isnan(check_value):
             if self.short: return self.value <= check_value
             else: return self.value >= check_value

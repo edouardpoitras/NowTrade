@@ -49,10 +49,10 @@ class Report:
             self.ongoing_trades[symbol] = None
         if 'PL_%s' %symbol not in data_frame:
             data_frame['PL_%s' %symbol] = pd.Series(index=data_frame.index)
-        if 'PL_VALUE_%s' %symbol not in data_frame:
-            data_frame['PL_VALUE_%s' %symbol] = pd.Series(index=data_frame.index)
-        if 'PL_PERCENT_%s' %symbol not in data_frame:
-            data_frame['PL_PERCENT_%s' %symbol] = pd.Series(index=data_frame.index)
+        if 'CHANGE_VALUE_%s' %symbol not in data_frame:
+            data_frame['CHANGE_VALUE_%s' %symbol] = pd.Series(index=data_frame.index)
+        if 'CHANGE_PERCENT_%s' %symbol not in data_frame:
+            data_frame['CHANGE_PERCENT_%s' %symbol] = pd.Series(index=data_frame.index)
         trade = self.ongoing_trades[symbol]
         status = data_frame['STATUS_%s' %symbol][-1]
         action = data_frame['ACTIONS_%s' %symbol][-1]
@@ -64,11 +64,11 @@ class Report:
             enter_change = open_value - trade.price
             percent_change = enter_change / trade.price
             pl = percent_change * trade.money
-            if status < 0: # Shorting
+            if action == SHORT_EXIT: # Shorting
                 pl = pl * -1
             data_frame['PL_%s' %symbol][-1] = pl
-            data_frame['PL_VALUE_%s' %symbol][-1] = enter_change
-            data_frame['PL_PERCENT_%s' %symbol][-1] = percent_change
+            data_frame['CHANGE_VALUE_%s' %symbol][-1] = enter_change
+            data_frame['CHANGE_PERCENT_%s' %symbol][-1] = percent_change
         elif trade: # Ongoing Trade
             enter_close_value = data_frame['%s_Close' %symbol][trade.datetime]
             enter_change = close_value - trade.price
@@ -77,8 +77,8 @@ class Report:
             if status < 0: # Shorting
                 pl = pl * -1
             data_frame['PL_%s' %symbol][-1] = pl
-            data_frame['PL_VALUE_%s' %symbol][-1] = enter_change
-            data_frame['PL_PERCENT_%s' %symbol][-1] = percent_change
+            data_frame['CHANGE_VALUE_%s' %symbol][-1] = enter_change
+            data_frame['CHANGE_PERCENT_%s' %symbol][-1] = percent_change
         elif data_frame['ACTIONS_%s' %symbol][-1] != 0: # New Enter/Exit Trade
             shares = self.trading_profile.trading_amount.get_shares(open_value, self.available_money)
             fee = self.trading_profile.trading_fee.get_fee(open_value, shares)
@@ -88,12 +88,12 @@ class Report:
             if status < 0: # Shorting
                 pl = pl * -1
             data_frame['PL_%s' %symbol][-1] = pl
-            data_frame['PL_VALUE_%s' %symbol][-1] = change
-            data_frame['PL_PERCENT_%s' %symbol][-1] = percent_change
+            data_frame['CHANGE_VALUE_%s' %symbol][-1] = change
+            data_frame['CHANGE_PERCENT_%s' %symbol][-1] = percent_change
         else: # Not in trade
             data_frame['PL_%s' %symbol][-1] = np.nan
-            data_frame['PL_VALUE_%s' %symbol][-1] = np.nan
-            data_frame['PL_PERCENT_%s' %symbol][-1] = np.nan
+            data_frame['CHANGE_VALUE_%s' %symbol][-1] = np.nan
+            data_frame['CHANGE_PERCENT_%s' %symbol][-1] = np.nan
         self._require_finalize_calculations = True
 
     def handle_action(self, symbol, data_frame):

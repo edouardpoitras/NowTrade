@@ -15,7 +15,7 @@ class TestCriteria(unittest.TestCase):
                                   [20, 1, 9.0, NO_ACTION, 0, -10, -0.10, -0.01],
                                   [25, 0, 10.0, SHORT, -1, -20, 0.0, -0.02],
                                   [30, -1, 11.0, SHORT_EXIT, 0, 0, 0.10, -0.03]],
-                                 columns=['ONE', 'TWO', 'THREE', 'ACTIONS_ONE', 'STATUS_ONE', 'PL_ONE', 'PL_VALUE_ONE', 'PL_PERCENT_ONE'],
+                                 columns=['ONE', 'TWO', 'THREE', 'ACTIONS_ONE', 'STATUS_ONE', 'PL_ONE', 'CHANGE_VALUE_ONE', 'CHANGE_PERCENT_ONE'],
                                  index=pd.date_range('20100601', periods=7))
         self.one = Symbol('ONE')
         self.two = Symbol('TWO')
