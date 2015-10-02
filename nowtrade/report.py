@@ -246,7 +246,8 @@ class Report:
             last_trade = None
             for trade in self.trade_history[symbol]:
                 if trade.action == 'SHORT_EXIT' or trade.action == 'LONG_EXIT':
-                    bars += len(self.strategy.dataset.data_frame[last_trade.datetime:trade.datetime])
+                    # -1 because we don't count the exit bar where we exit on the OPEN
+                    bars += len(self.strategy.dataset.data_frame[last_trade.datetime:trade.datetime]) - 1
                     last_trade = None
                 else: last_trade = trade
         return bars / self.trades
