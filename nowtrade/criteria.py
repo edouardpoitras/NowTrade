@@ -38,7 +38,7 @@ class BarsSinceAction(Criteria):
             return self.action in values
         else:
             if len(data_frame['ACTIONS_%s' %self.symbol]) >= self.num_bars_required:
-                return self.action == data_frame['ACTIONS_%s' %self.symbol][-self.periods]
+                return self.action == data_frame['ACTIONS_%s' %self.symbol][-1-self.periods]
             return False
 
 class BarsSinceLong(BarsSinceAction):
@@ -283,7 +283,6 @@ class Above(Criteria):
         if len(data_frame) < self.lookback: return False
         # Second value is not a technical indicator, simply a number to compare
         if isinstance(self.param2, (int, long, float)):
-            print 'comparing %s with %s' %(data_frame[self.param1][-self.lookback], self.param2)
             return data_frame[self.param1][-self.lookback] > self.param2
         else: return data_frame[self.param1][-self.lookback] > data_frame[self.param2][-self.lookback]
 
@@ -322,7 +321,6 @@ class Equals(Criteria):
         if len(data_frame) < self.lookback: return False
         # Second value is not a technical indicator, simply a number to compare
         if isinstance(self.param2, (int, long, float)):
-            print 'comparing %s and %s' %(data_frame[self.param1][-self.lookback], self.param2)
             return data_frame[self.param1][-self.lookback] == self.param2
         else: return data_frame[self.param1][-self.lookback] == data_frame[self.param2][-self.lookback]
 Equal = Equals
