@@ -12,8 +12,8 @@ LOGGING_DEFAULT_FILE = logging.WARNING
 #LOGGING_Action_FILE = logging.DEBUG
 
 # Criteria module
-#LOGGING_Position_CONSOLE = logging.DEBUG
-#LOGGING_Position_FILE = logging.DEBUG
+#LOGGING_Above_CONSOLE = logging.DEBUG
+#LOGGING_Above_FILE = logging.DEBUG
 #LOGGING_BarsSinceLong_CONSOLE = logging.DEBUG
 #LOGGING_BarsSinceLong_FILE = logging.DEBUG
 

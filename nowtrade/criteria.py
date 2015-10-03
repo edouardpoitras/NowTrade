@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from nowtrade import logger
 from nowtrade import action
+from nowtrade.technical_indicator import TechnicalIndicator
 
 class Criteria(object):
     """
@@ -238,38 +239,11 @@ class IsWeekDay(Criteria):
     def apply(self, data_frame):
         return data_frame.index.weekday == self.weekday
 
-class Position(Criteria):
-    def __init__(self, param1, position, param2):
-        Criteria.__init__(self)
-        self.param1 = param1 # Technical indicator label
-        self.position = position.upper() # ABOVE or BELOW
-        self.param2 = param2 # Technical indicator label or int or long or float
-        self.label = 'Position_%s_%s_%s' %(param1, position, param2)
-        self.num_bars_required = 1
-        self.logger.info('Initialized - %s' %self)
-    def __str__(self):
-        return 'Position(param1=%s, position=%s, param2=%s)' %(self.param1, self.position, self.param2)
-    def __repr__(self): return self.label
-    def apply(self, data_frame):
-        results = pd.Series(False, index=data_frame.index)
-        # Second value is not a technical indicator, simply a number to compare
-        if isinstance(self.param2, (int, long, float)):
-            if self.position == 'ABOVE':
-                results = data_frame[self.param1] > self.param2
-            elif self.position == 'BELOW':
-                results = data_frame[self.param1] < self.param2
-            else: results = data_frame[self.param1] == self.param2
-        else: # Compare two technical indicators
-            if self.position == 'ABOVE':
-                results = data_frame[self.param1] > data_frame[self.param2]
-            elif self.position == 'BELOW':
-                results = data_frame[self.param1] < data_frame[self.param2]
-            else: results = data_frame[self.param1] == data_frame[self.param2]
-        return results.iloc[-1]
-
 class Above(Criteria):
     def __init__(self, param1, param2, lookback=1):
         Criteria.__init__(self)
+        if isinstance(param1, TechnicalIndicator): param1 = param1.value
+        if isinstance(param2, TechnicalIndicator): param2 = param2.value
         self.param1 = param1 # Technical indicator label
         self.param2 = param2 # Technical indicator label or int or long or float
         self.lookback = lookback
@@ -289,6 +263,8 @@ class Above(Criteria):
 class Below(Criteria):
     def __init__(self, param1, param2, lookback=1):
         Criteria.__init__(self)
+        if isinstance(param1, TechnicalIndicator): param1 = param1.value
+        if isinstance(param2, TechnicalIndicator): param2 = param2.value
         self.param1 = param1 # Technical indicator label
         self.param2 = param2 # Technical indicator label or int or long or float
         self.lookback = lookback
@@ -308,6 +284,8 @@ class Below(Criteria):
 class Equals(Criteria):
     def __init__(self, param1, param2, lookback=1):
         Criteria.__init__(self)
+        if isinstance(param1, TechnicalIndicator): param1 = param1.value
+        if isinstance(param2, TechnicalIndicator): param2 = param2.value
         self.param1 = param1 # Technical indicator label
         self.param2 = param2 # Technical indicator label or int or long or float
         self.lookback = lookback
@@ -332,6 +310,7 @@ class InRange(Criteria):
     """
     def __init__(self, ti, min_range, max_range):
         Criteria.__init__(self)
+        if isinstance(ti, TechnicalIndicator): ti = ti.value
         self.ti = ti
         self.min_range = min_range
         self.max_range = max_range
@@ -373,6 +352,8 @@ class Not(Criteria):
 class Crossing(Criteria):
     def __init__(self, param1, direction, param2):
         Criteria.__init__(self)
+        if isinstance(param1, TechnicalIndicator): param1 = param1.value
+        if isinstance(param2, TechnicalIndicator): param2 = param2.value
         self.direction = direction.lower()
         self.param1 = param1
         self.param2 = param2
