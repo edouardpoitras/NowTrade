@@ -3,7 +3,7 @@ from nowtrade.symbol_list import StockList
 from nowtrade.data_connection import YahooConnection
 from nowtrade.dataset import Dataset
 from nowtrade.technical_indicator import SMA
-from nowtrade.criteria import Crossing, TrailingStop
+from nowtrade.criteria import CrossingAbove, TrailingStop
 from nowtrade.criteria_group import CriteriaGroup
 from nowtrade.action import Long, LongExit
 from nowtrade.trading_profile import TradingProfile
@@ -33,7 +33,7 @@ stock_data.add_technical_indicator(sma50)
 stock_data.add_technical_indicator(sma100)
 # Let's define our entry/exit criteria
 # Enter long position when the 50-day moving average crosses over the 100-day moving average
-enter_crit_long = Crossing(sma50, 'above', sma100)
+enter_crit_long = CrossingAbove(sma50, sma100)
 # Our exit criteria will simply be a trailing stop of 5%
 exit_crit_long = TrailingStop(googl, 0.05, percent=True)
 # Now let's define what should happen when our criteria are met using criteria groups

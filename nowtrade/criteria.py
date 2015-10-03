@@ -349,32 +349,56 @@ class Not(Criteria):
         if self.criteria.apply(data_frame) == False: return True
         return False
 
-class Crossing(Criteria):
-    def __init__(self, param1, direction, param2):
+class CrossingAbove(Criteria):
+    def __init__(self, param1, param2):
         Criteria.__init__(self)
         if isinstance(param1, TechnicalIndicator): param1 = param1.value
         if isinstance(param2, TechnicalIndicator): param2 = param2.value
-        self.direction = direction.lower()
         self.param1 = param1
         self.param2 = param2
         self.num_bars_required = 2
         self.logger.info('Initialized - %s' %self)
     def __repr__(self):
-        return 'Crossing(param1=%s, direction=%s, param2=%s)' \
-               %(self.param1, self.direction, self.param2)
+        return 'CrossingAbove(param1=%s, param2=%s)' \
+               %(self.param1, self.param2)
     def __str__(self):
-        return 'Crossing(param1=%s, direction=%s, param2=%s)' \
-               %(self.param1, self.direction, self.param2)
+        return 'CrossingAbove(param1=%s, param2=%s)' \
+               %(self.param1, self.param2)
     def apply(self, data_frame):
         if len(data_frame) < self.num_bars_required: return False
         value1_now = data_frame[self.param1][-1]
         value1_previous = data_frame[self.param1][-2]
         if isinstance(self.param2, (int, long, float)):
-            if self.direction == 'above' and value1_previous <= self.param2 and value1_now > self.param2: return True
-            elif self.direction == 'below' and value1_previous >= self.param2 and value1_now < self.param2: return True
+            if value1_previous <= self.param2 and value1_now > self.param2: return True
         else:
             value2_now = data_frame[self.param2][-1]
             value2_previous = data_frame[self.param2][-2]
-            if self.direction == 'above' and value1_previous <= value2_previous and value1_now > value2_now: return True
-            elif self.direction == 'below' and value1_previous >= value2_previous and value1_now < value2_now: return True
+            if value1_previous <= value2_previous and value1_now > value2_now: return True
+        return False
+
+class CrossingBelow(Criteria):
+    def __init__(self, param1, param2):
+        Criteria.__init__(self)
+        if isinstance(param1, TechnicalIndicator): param1 = param1.value
+        if isinstance(param2, TechnicalIndicator): param2 = param2.value
+        self.param1 = param1
+        self.param2 = param2
+        self.num_bars_required = 2
+        self.logger.info('Initialized - %s' %self)
+    def __repr__(self):
+        return 'CrossingBelow(param1=%s, param2=%s)' \
+               %(self.param1, self.param2)
+    def __str__(self):
+        return 'CrossingBelow(param1=%s, param2=%s)' \
+               %(self.param1, self.param2)
+    def apply(self, data_frame):
+        if len(data_frame) < self.num_bars_required: return False
+        value1_now = data_frame[self.param1][-1]
+        value1_previous = data_frame[self.param1][-2]
+        if isinstance(self.param2, (int, long, float)):
+            if value1_previous >= self.param2 and value1_now < self.param2: return True
+        else:
+            value2_now = data_frame[self.param2][-1]
+            value2_previous = data_frame[self.param2][-2]
+            if value1_previous >= value2_previous and value1_now < value2_now: return True
         return False
