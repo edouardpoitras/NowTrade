@@ -150,8 +150,8 @@ class TestStrategy(unittest.TestCase):
         self.assertEqual(strat.realtime_data_frame.iloc[4]['ACTIONS_MSFT'], -1)
 
     def test_upcoming_action(self):
-        enter_crit = criteria.Position(self.symbol.close, 'above', 25.88)
-        exit_crit = criteria.Position(self.symbol.close, 'equals', 25.00)
+        enter_crit = criteria.Above(self.symbol.close, 25.88)
+        exit_crit = criteria.Equals(self.symbol.close, 25.00)
         enter_crit_group = criteria_group.CriteriaGroup([enter_crit], Short(), self.symbol)
         exit_crit_group = criteria_group.CriteriaGroup([exit_crit], ShortExit(), self.symbol)
         tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))

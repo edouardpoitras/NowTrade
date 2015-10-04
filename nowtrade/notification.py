@@ -17,29 +17,38 @@ class SMTPNotification(Notification):
         self.recipient = recipient
         self.server = server
         self.port = port
-        self.logger = Logger(self.__class__.__name__)
+        self.session = self._get_session()
+        self.headers = None
+        self.body = None
+        self.logger = logger.Logger(self.__class__.__name__)
         self.logger.info('username: %s  password: *  recipient: %s  server: %s  port: %s'
-                %(username, password, recipient, server, port))
+                %(username, recipient, server, port))
 
     def send(self, subject, body):
         self.logger.info('Sending email to %s' %self.recipient)
+        self.headers = self._get_headers(subject)
+        self.body = body
+        self.logger.debug('Headers: %s' %self.headers)
+        self.logger.debug('Body: %s' %self.body)
+        self._send(self.headers, self.body)
+        self.logger.debug('Email sent')
+
+    def _get_headers(self, subject):
         headers = ['From: ' + self.username,
                    'Subject: ' + subject,
                    'To: ' + self.recipient,
                    'MIME-Version: 1.0',
                    'Content-Type: text/html']
         headers = '\r\n'.join(headers)
-        self.logger.debug('Headers: %s' %headers)
-        self.logger.debug('Body: %s' %body)
-        session = smtplib.SMTP(self.server, self.port)
-        session.ehlo()
-        session.starttls()
-        session.ehlo()
-        session.login(self.username, self.password)
-        session.sendmail(self.username, self.recipient, headers + '\r\n\r\n' + body)
-        session.quit()
-        self.logger.debug('Email sent')
+        return headers
 
-if __name__ == '__main__':
-    SMTPNotification('user@gmail.com', 'password', \
-                     'recipient@email.com').send('Test Subject', 'Test Email Body')
+    def _get_session(self):
+        return smtplib.SMTP(self.server, self.port)
+
+    def _send(self, headers, body):
+        self.session.ehlo()
+        self.session.starttls()
+        self.session.ehlo()
+        self.session.login(self.username, self.password)
+        self.session.sendmail(self.username, self.recipient, headers + '\r\n\r\n' + body)
+        self.session.quit()

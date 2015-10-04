@@ -3,7 +3,7 @@ from nowtrade.symbol_list import StockList
 from nowtrade.data_connection import YahooConnection
 from nowtrade.dataset import Dataset
 from nowtrade.technical_indicator import SMA
-from nowtrade.criteria import Crossing, TrailingStop
+from nowtrade.criteria import CrossingAbove, TrailingStop
 from nowtrade.criteria_group import CriteriaGroup
 from nowtrade.action import Long, LongExit
 from nowtrade.trading_profile import TradingProfile
@@ -24,7 +24,7 @@ sma10 = SMA(googl.close, 10)
 sma25 = SMA(googl.close, 25)
 stock_data.add_technical_indicator(sma10)
 stock_data.add_technical_indicator(sma25)
-enter_crit_long = Crossing(sma10.value, 'above', sma25.value)
+enter_crit_long = CrossingAbove(sma10, sma25)
 exit_crit_long = TrailingStop(googl, 0.05, percent=True)
 enter_crit_group = CriteriaGroup([enter_crit_long], Long(), googl)
 exit_crit_group = CriteriaGroup([exit_crit_long], LongExit(), googl)

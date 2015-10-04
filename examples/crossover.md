@@ -84,11 +84,11 @@ At this point all of our technical indicators are calculated and applied to our 
 
 Click [here](http://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.html) for more information on pandas dataframes.
 
-Let's define our entry/exit criteria.  We want to enter a long position when the 50-day moving average crosses over the 100-day moving average.  Thankfully, NowTrade already has a built-in criteria for this named Crossing.
+Let's define our entry/exit criteria.  We want to enter a long position when the 50-day moving average crosses over the 100-day moving average.  Thankfully, NowTrade already has a built-in criteria for this named CrossingAbove and CrossingBelow.
 
-    enter_crit_long = Crossing(sma50.value, 'above', sma100.value)
+    enter_crit_long = CrossingAbove(sma50, sma100)
 
-It simply checks if the technical indicator in the first parameter is crossing 'above' or 'below' the technical indicator in the third parameter.
+It simply checks if the technical indicator in the first parameter is crossing above or below the technical indicator in the third parameter.
 
 What about our exit criteria?  Well let's simply apply a trailing stop of 5% below our entry price:
 

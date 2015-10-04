@@ -179,14 +179,14 @@ class TestInRange(TestCriteria):
 
 class TestCrossing(TestCriteria):
     def test_crossing(self):
-        crit = criteria.Crossing(str(self.one), 'above', str(self.two))
+        crit = criteria.CrossingAbove(str(self.one), str(self.two))
         self.assertTrue(crit.apply(self.data.head(2)))
-        crit = criteria.Crossing(str(self.one), 'below', str(self.two))
+        crit = criteria.CrossingBelow(str(self.one), str(self.two))
         self.assertFalse(crit.apply(self.data.head(2)))
-        crit = criteria.Crossing(str(self.three), 'below', str(self.one))
+        crit = criteria.CrossingBelow(str(self.three), str(self.one))
         self.assertFalse(crit.apply(self.data.head(2)))
         self.assertTrue(crit.apply(self.data.head(3)))
-        crit = criteria.Crossing(str(self.two), 'below', 2)
+        crit = criteria.CrossingBelow(str(self.two), 2)
         self.assertFalse(crit.apply(self.data.head(4)))
         self.assertTrue(crit.apply(self.data.head(5)))
 
