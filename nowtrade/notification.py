@@ -17,6 +17,7 @@ class SMTPNotification(Notification):
         self.recipient = recipient
         self.server = server
         self.port = port
+        self.session = self._get_session()
         self.headers = None
         self.body = None
         self.logger = logger.Logger(self.__class__.__name__)
@@ -41,11 +42,13 @@ class SMTPNotification(Notification):
         headers = '\r\n'.join(headers)
         return headers
 
+    def _get_session(self):
+        return smtplib.SMTP(self.server, self.port)
+
     def _send(self, headers, body):
-        session = smtplib.SMTP(self.server, self.port)
-        session.ehlo()
-        session.starttls()
-        session.ehlo()
-        session.login(self.username, self.password)
-        session.sendmail(self.username, self.recipient, headers + '\r\n\r\n' + body)
-        session.quit()
+        self.session.ehlo()
+        self.session.starttls()
+        self.session.ehlo()
+        self.session.login(self.username, self.password)
+        self.session.sendmail(self.username, self.recipient, headers + '\r\n\r\n' + body)
+        self.session.quit()

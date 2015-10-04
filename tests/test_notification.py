@@ -4,7 +4,14 @@ import unittest
 class MockSMTPNotification(SMTPNotification):
     def __init__(self, username, password, recipient):
         SMTPNotification.__init__(self, username, password, recipient)
-    def _send(self, headers, body): pass
+        self.session = MockSMTPSession()
+
+class MockSMTPSession:
+    def ehlo(self): pass
+    def starttls(self): pass
+    def login(self, username, password): pass
+    def sendmail(self, username, recipient, content): pass
+    def quit(self): pass
 
 class TestSMTPNotification(unittest.TestCase):
     def test_initialization(self):
