@@ -167,7 +167,7 @@ class ForexiteConnection(DataConnection):
                 print 'No data for %s' %url
                 continue
             for ticker in d['<TICKER>'].unique():
-                df = d.loc[d['<TICKER>'] == ticker]
+                df = d.loc[d['<TICKER>'] == ticker]  #pylint: disable=no-member
                 first_row = df.iloc[0]
                 start_date = first_row['<DTYYYYMMDD>']
                 start_time = first_row['<TIME>']

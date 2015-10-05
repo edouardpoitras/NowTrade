@@ -5,7 +5,7 @@ virtualenv:
     system_site_packages: true
 before_install:
     - sudo apt-get install gfortran libopenblas-dev liblapack-dev python-numpy python-scipy python-matplotlib python-coverage
-    - sudo pip install coveralls pandas
+    - sudo pip install coveralls pandas pylint
     - ./travis/install_talib_deps.sh
     - sudo pip install --allow-external=TA-Lib --allow-unverified=TA-Lib TA-Lib
 install:
@@ -13,5 +13,6 @@ install:
 script:
     - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
     - nosetests --with-coverage --cover-package=nowtrade
+    - pylint nowtrade --rcfile=.pylintrc --errors-only
 after_success:
     - coveralls

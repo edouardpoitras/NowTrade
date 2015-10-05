@@ -29,7 +29,9 @@ class Logger:
         self.fileLvl = self.getFileLevel(name, fileLvl)
         self.logger = logging.getLogger(name)
         self.fileFormatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s: %(message)s')
+        self.fileLoggingHandler = None
         self.consoleFormatter = logging.Formatter('%(levelname)-8s %(name)s: %(message)s')
+        self.consoleLoggingHandler = None
         if len(self.logger.handlers) < 1:
             self.logger.propagate = False # Required to stop root logger
             self.logger.setLevel(logging.DEBUG)
