@@ -1,14 +1,17 @@
 import unittest
-from nowtrade.symbol_list import SymbolList
+from nowtrade.symbol_list import SymbolList, StockList
 
 class TestSymbolList(unittest.TestCase):
     def test_symbol_list(self):
         sanity = ['MSFT', 'GOOG', 'AAPL']
         symbols = ['msft', 'gOOg', 'AAPl']
+        stocks = symbols
         symbol_list = SymbolList(symbols)
+        stock_list = StockList(stocks)
         for symbol in symbol_list: sanity.remove(str(symbol))
         self.assertEqual(len(sanity), 0)
         msft = symbol_list.get('msft')
+        goog = symbol_list.get('goog')
         self.assertEqual(msft.symbol, 'MSFT')
         self.assertEqual(msft.symbol, 'MSFT')
         self.assertEqual(msft.open, 'MSFT_Open')
@@ -17,6 +20,15 @@ class TestSymbolList(unittest.TestCase):
         self.assertEqual(msft.close, 'MSFT_Close')
         self.assertEqual(msft.volume, 'MSFT_Volume')
         self.assertEqual(msft.adj_close, 'MSFT_Adj Close')
+        self.assertEqual(symbol_list.get('TEST'), None)
+        self.assertEqual(goog.symbol, 'GOOG')
+        self.assertEqual(goog.symbol, 'GOOG')
+        self.assertEqual(goog.open, 'GOOG_Open')
+        self.assertEqual(goog.high, 'GOOG_High')
+        self.assertEqual(goog.low, 'GOOG_Low')
+        self.assertEqual(goog.close, 'GOOG_Close')
+        self.assertEqual(goog.volume, 'GOOG_Volume')
+        self.assertEqual(goog.adj_close, 'GOOG_Adj Close')
 
 if __name__ == "__main__":
     unittest.main()
