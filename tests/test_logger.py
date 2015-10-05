@@ -9,6 +9,9 @@ class TestLogger(unittest.TestCase):
         logger = Logger(rootLogger.name, logFile='logger.log', consoleLvl=CRITICAL, fileLvl=None)
         logger.__getstate__()
         logger.__setstate__({})
+        logger = Logger(rootLogger.name, logFile='logger.log', consoleLvl=None, fileLvl=CRITICAL)
+        logger.__getstate__()
+        logger.__setstate__({})
 
 if __name__ == "__main__":
     unittest.main()
