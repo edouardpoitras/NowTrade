@@ -25,7 +25,7 @@ class NumberOfShares(TradingAmount):
         self.logger.info('Initialized - %s' %self)
     def __str__(self): return 'NumberOfShares(shares=%s)' %self.shares
     def __repr__(self): return 'NumberOfShares(shares=%s)' %self.shares
-    def get_shares(self, price, capital): return self.shares
+    def get_shares(self, price, available_money): return self.shares
 
 class CapitalPercentage(TradingAmount):
     def __init__(self, percent):
@@ -52,4 +52,4 @@ class KellyCriterion(TradingAmount):
         self.logger.info('Initialized - %s' %self)
     def get_shares(self, price, available_money):
         k = self.w - ((1 - self.w) / self.r)
-        return capital * k
+        return available_money * k
