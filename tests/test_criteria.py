@@ -193,6 +193,9 @@ class TestInRange(TestCriteria):
         crit = criteria.InRange(str(self.two), 4, str(self.three))
         ret = crit.apply(self.data.head(1))
         self.assertTrue(ret)
+        crit = criteria.InRange(str(self.two), str(self.one), 6)
+        ret = crit.apply(self.data.head(1))
+        self.assertTrue(ret)
 
 class TestCrossing(TestCriteria):
     def test_crossing(self):
