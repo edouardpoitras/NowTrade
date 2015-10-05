@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 import pandas as pd
 from nowtrade import criteria
 from testing_data import msft_data, msft_close_name
@@ -8,21 +9,26 @@ from nowtrade.strategy import LONG, SHORT, LONG_EXIT, SHORT_EXIT, NO_ACTION
 
 class TestCriteria(unittest.TestCase):
     def setUp(self):
-        self.data = pd.DataFrame([[0, 5, 10.0, NO_ACTION, 0, 10, -0.10, 0.01],
-                                  [5, 4, 12.0, LONG, 1, 20, -0.20, 0.02],
-                                  [10, 3, 8.0, NO_ACTION, 1, 30, -0.30, 0.01],
-                                  [15, 2, 6.0, LONG_EXIT, 0, 0, -0.20, 0.00],
-                                  [20, 1, 9.0, NO_ACTION, 0, -10, -0.10, -0.01],
-                                  [25, 0, 10.0, SHORT, -1, -20, 0.0, -0.02],
-                                  [30, -1, 11.0, SHORT_EXIT, 0, 0, 0.10, -0.03]],
-                                 columns=['ONE', 'TWO', 'THREE', 'ACTIONS_ONE', 'STATUS_ONE', 'PL_ONE', 'CHANGE_VALUE_ONE', 'CHANGE_PERCENT_ONE'],
+        self.data = pd.DataFrame([[0, 5, 10.0, 0, NO_ACTION, 0, 10, -0.10, 0.01],
+                                  [5, 4, 12.0, 5, LONG, 1, 20, -0.20, 0.02],
+                                  [10, 3, 8.0, 10, NO_ACTION, 1, 30, -0.30, 0.01],
+                                  [15, 2, 6.0, 15, LONG_EXIT, 0, 0, -0.20, 0.00],
+                                  [20, 1, 9.0, 20, NO_ACTION, 0, -10, -0.10, -0.01],
+                                  [25, 0, 10.0, 25, SHORT, -1, -20, 0.0, -0.02],
+                                  [30, -1, 11.0, 30, SHORT_EXIT, 0, 0, 0.10, -0.03]],
+                                 columns=['ONE', 'TWO', 'THREE', 'ONE_CLONE', 'ACTIONS_ONE', 'STATUS_ONE', 'PL_ONE', 'CHANGE_VALUE_ONE', 'CHANGE_PERCENT_ONE'],
                                  index=pd.date_range('20100601', periods=7))
         self.one = Symbol('ONE')
         self.two = Symbol('TWO')
         self.three = Symbol('THREE')
+        self.one_clone = Symbol('ONE_CLONE')
 
 class TestBarsSinceAction(TestCriteria):
     def test_bars_since_action(self):
+        crit = criteria.BarsSinceAction(self.one, Long(), 2)
+        self.assertEquals(str(crit), 'BarsSinceAction(symbol=ONE, action=1, periods=2, condition=NONE)')
+        crit = criteria.BarsSinceLongExit(self.one, 3)
+        self.assertTrue(crit.apply(self.data))
         crit = criteria.BarsSinceShortExit(self.one, 2)
         self.assertFalse(crit.apply(self.data))
         crit = criteria.BarsSinceShortExit(self.one, 1)
@@ -74,6 +80,7 @@ class TestIsLong(TestCriteria):
         self.assertFalse(crit.apply(self.data))
         self.assertFalse(crit.apply(self.data[:-1]))
         self.assertTrue(crit.apply(self.data[:3]))
+        self.assertFalse(crit.apply(pd.DataFrame()))
 
 class TestIsShort(TestCriteria):
     def test_is_short(self):
@@ -81,6 +88,7 @@ class TestIsShort(TestCriteria):
         self.assertFalse(crit.apply(self.data))
         self.assertTrue(crit.apply(self.data[:-1]))
         self.assertFalse(crit.apply(self.data[:2]))
+        self.assertFalse(crit.apply(pd.DataFrame()))
 
 class TestIsYear(TestCriteria):
     def test_is_year(self):
@@ -155,6 +163,9 @@ class TestPositions(TestCriteria):
         self.assertEqual(value, True)
         crit = criteria.Equals('ONE', 12, 3)
         self.assertEqual(value, True)
+        crit = criteria.Equals('ONE', 'ONE_CLONE', 2)
+        value = crit.apply(self.data)
+        self.assertEqual(value, True)
 
 class TestInRange(TestCriteria):
     def test_in_range(self):
@@ -176,16 +187,26 @@ class TestInRange(TestCriteria):
         self.assertTrue(ret)
         ret = crit.apply(self.data.head(3))
         self.assertFalse(ret)
+        crit = criteria.InRange(str(self.one), -1, 1)
+        ret = crit.apply(self.data.head(1))
+        self.assertTrue(ret)
+        crit = criteria.InRange(str(self.two), 4, str(self.three))
+        ret = crit.apply(self.data.head(1))
+        self.assertTrue(ret)
 
 class TestCrossing(TestCriteria):
     def test_crossing(self):
         crit = criteria.CrossingAbove(str(self.one), str(self.two))
+        self.assertEquals(crit.__repr__(), 'CrossingAbove(param1=ONE, param2=TWO)')
         self.assertTrue(crit.apply(self.data.head(2)))
         crit = criteria.CrossingBelow(str(self.one), str(self.two))
+        self.assertEquals(crit.__repr__(), 'CrossingBelow(param1=ONE, param2=TWO)')
         self.assertFalse(crit.apply(self.data.head(2)))
         crit = criteria.CrossingBelow(str(self.three), str(self.one))
         self.assertFalse(crit.apply(self.data.head(2)))
         self.assertTrue(crit.apply(self.data.head(3)))
+        crit = criteria.CrossingAbove(str(self.one), 7)
+        self.assertFalse(crit.apply(self.data.head(2)))
         crit = criteria.CrossingBelow(str(self.two), 2)
         self.assertFalse(crit.apply(self.data.head(4)))
         self.assertTrue(crit.apply(self.data.head(5)))
@@ -228,6 +249,8 @@ class TestTakeProfit(TestCriteria):
         crit = criteria.TakeProfit(self.one, 20)
         self.assertTrue(crit.apply(self.data[:2]))
         self.assertFalse(crit.apply(self.data[:-1]))
+        self.data['PL_ONE'] = np.nan
+        self.assertFalse(crit.apply(self.data))
 
 if __name__ == "__main__":
     unittest.main()
