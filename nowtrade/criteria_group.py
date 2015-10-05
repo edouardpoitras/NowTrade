@@ -39,14 +39,6 @@ class CriteriaGroup:
     def __repr__(self):
         return 'CriteriaGroup(criteria_list=%s, action=%s, symbol=%s)' %(self.criteria_list, self.action, self.symbol)
 
-    def _all(self, series):
-        """
-        Takes a series and returns the CriteriaGroup's action if
-        the values are all True.
-        """
-        if False in series.values: return NO_ACTION
-        else: return self._action
-
     def get_result(self, data_frame):
         results = []
         for criteria in self.criteria_list:

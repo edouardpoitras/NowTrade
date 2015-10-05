@@ -52,5 +52,8 @@ class DummyCriteria(Criteria):
     def __init__(self, value):
         Criteria.__init__(self)
         self.value = value
+    def __str__(self):
+        return 'DummyCriteria()'
+    def __repr__(self): return self.__str__()
     def apply(self, data_frame):
         return self.value
