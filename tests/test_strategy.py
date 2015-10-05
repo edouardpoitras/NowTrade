@@ -22,6 +22,8 @@ class TestStrategy(unittest.TestCase):
         exit_crit_group = criteria_group.CriteriaGroup([exit_crit], LongExit(), self.symbol)
         tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))
         strat = strategy.Strategy(self.d, [enter_crit_group, exit_crit_group], tp)
+        repr_string = 'Strategy(dataset=Dataset(symbol_list=[MSFT], data_connection=DummyDataConnection(), start_datetime=None, end_datetime=None, periods=0, granularity=None), criteria_groups=[CriteriaGroup(criteria_list=[Above_MSFT_Close_25.88_1, Not_InMarket(symbol=MSFT)], action=long, symbol=MSFT), CriteriaGroup(criteria_list=[BarsSinceLong_MSFT_2_None, IsLong_MSFT], action=longexit, symbol=MSFT)], trading_profile=TradingProfile(capital=10000, trading_amount=StaticAmount(amount=5000, round_up=False), trading_fee=StaticFee(fee=0), slippage=0.0)'
+        self.assertEquals(strat.__repr__(), repr_string)
         strat.simulate()
         report_overview = strat.report.overview()
         self.assertAlmostEqual(strat.realtime_data_frame.iloc[4]['PL_MSFT'], report_overview['net_profit'])

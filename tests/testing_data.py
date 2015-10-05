@@ -42,6 +42,7 @@ class DummyDataConnection(object):
     For testing purposes.  get_data always returns msft_data.
     """
     def __init__(self): pass
+    def __repr__(self): return 'DummyDataConnection()'
     def get_data(self, *args, **kwargs):
         return msft_data
 
