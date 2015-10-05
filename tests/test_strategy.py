@@ -1,10 +1,12 @@
 import unittest
 import datetime
 import numpy as np
+import pandas as pd
 from testing_data import DummyDataConnection
 from nowtrade import symbol_list, data_connection, dataset, technical_indicator, \
                      criteria, criteria_group, trading_profile, trading_amount, \
                      trading_fee, report, strategy
+from nowtrade.report import InvalidExit
 from nowtrade.action import Long, Short, LongExit, ShortExit, SHORT_EXIT
 
 class TestStrategy(unittest.TestCase):
@@ -49,6 +51,12 @@ class TestStrategy(unittest.TestCase):
         self.assertEqual(report_overview['ongoing_trades'], 0)
         self.assertEqual(report_overview['average_trading_amount'], 5003.5199999999995)
         self.assertEqual(report_overview['profitability'], 0)
+        pretty_overview_string = 'Trades:\nMSFT\nTrade(datetime=2010-06-02 00:00:00, action=LONG, symbol=MSFT, price=26.06, shares=192.0, money=5003.52, fee=0, slippage=0.0)\nTrade(datetime=2010-06-07 00:00:00, action=LONG_EXIT, symbol=MSFT, price=25.82, shares=192.0, money=4957.44, fee=0, slippage=0.0)\nProfitability: 0.0\n# Trades: 1\nNet Profit: -46.08\nGross Profit: 0.0\nGross Loss: -46.08\nWinning Trades: 0\nLosing Trades: 1\nSharpe Ratio: -6.0\nAvg. Trading Amount: 5003.52\nAvg. Fees: 0.0\nAvg. Slippage: 0.0\nAvg. Gains: -0.929512006197\nAvg. Winner: 0.0\nAvg. Loser: -0.929512006197\nAvg. Bars: 3.0\nTotal Fees: 0.0\nTotal Slippage: 0.0\nTrades Lacking Capital: 0\nOngoing Trades: 0'
+        self.assertEqual(strat.report.pretty_overview(), pretty_overview_string)
+        with self.assertRaises(report.InvalidExit):
+            strat.report.long_exit(None, None, 'MSFT')
+        with self.assertRaises(report.InvalidExit):
+            strat.report.short_exit(None, None, 'MSFT')
 
     def test_simple_short_strategy(self):
         enter_crit = criteria.Above(self.symbol.close, 25.88)
@@ -82,6 +90,38 @@ class TestStrategy(unittest.TestCase):
         self.assertEqual(report_overview['ongoing_trades'], 0)
         self.assertEqual(report_overview['average_trading_amount'], 5003.5199999999995)
         self.assertEqual(report_overview['profitability'], 100.00)
+
+    def test_report(self):
+        enter_crit = criteria.Above(self.symbol.close, 25.88)
+        exit_crit = criteria.BarsSinceLong(self.symbol, 1)
+        enter_crit_group = criteria_group.CriteriaGroup([enter_crit], Long(), self.symbol)
+        exit_crit_group = criteria_group.CriteriaGroup([exit_crit], LongExit(), self.symbol)
+        tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))
+        strat = strategy.Strategy(self.d, [enter_crit_group, exit_crit_group], tp)
+        strat.simulate()
+        report_overview = strat.report.overview()
+        self.assertAlmostEqual(report_overview['net_profit'], 7.68)
+        self.assertAlmostEqual(report_overview['average_gains'], 0.153256704981)
+        enter_crit = criteria.Above(self.symbol.close, 25.88)
+        exit_crit = criteria.BarsSinceShort(self.symbol, 1)
+        enter_crit_group = criteria_group.CriteriaGroup([enter_crit], Short(), self.symbol)
+        exit_crit_group = criteria_group.CriteriaGroup([exit_crit], ShortExit(), self.symbol)
+        tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))
+        strat = strategy.Strategy(self.d, [enter_crit_group, exit_crit_group], tp)
+        strat.simulate()
+        report_overview = strat.report.overview()
+        self.assertAlmostEqual(report_overview['net_profit'], -7.68)
+        self.assertAlmostEqual(report_overview['average_gains'], -0.15325670498086685)
+        enter_crit = criteria.Above(self.symbol.close, 50)
+        exit_crit = criteria.BarsSinceLong(self.symbol, 1)
+        enter_crit_group = criteria_group.CriteriaGroup([enter_crit], Long(), self.symbol)
+        exit_crit_group = criteria_group.CriteriaGroup([exit_crit], LongExit(), self.symbol)
+        tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))
+        strat = strategy.Strategy(self.d, [enter_crit_group, exit_crit_group], tp)
+        strat.simulate()
+        pretty_overview = strat.report.pretty_overview()
+        no_trades = pretty_overview.split('\n')[0]
+        self.assertEqual(no_trades, 'No trades')
 
     def test_stop_loss_strategy(self):
         enter_crit = criteria.Above(self.symbol.close, 25.88)
@@ -150,6 +190,9 @@ class TestStrategy(unittest.TestCase):
         self.assertEqual(strat.realtime_data_frame.iloc[2]['ACTIONS_MSFT'], 0)
         self.assertEqual(strat.realtime_data_frame.iloc[3]['ACTIONS_MSFT'], 0)
         self.assertEqual(strat.realtime_data_frame.iloc[4]['ACTIONS_MSFT'], -1)
+        # No properly implemented yet
+        self.assertTrue(np.isnan(strat.report.get_sharpe_ratio(benchmark=5)))
+        self.assertTrue(np.isnan(strat.report.get_sharpe_ratio(benchmark=pd.Series())))
 
     def test_upcoming_action(self):
         enter_crit = criteria.Above(self.symbol.close, 25.88)

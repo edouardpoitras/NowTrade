@@ -4,6 +4,8 @@ from nowtrade import logger
 from nowtrade.trade import Trade
 from nowtrade.action import LONG, LONG_EXIT, SHORT, SHORT_EXIT, NO_ACTION
 
+class InvalidExit(Exception): pass
+
 class Report:
     def __init__(self, strategy, trading_profile):
         self.strategy = strategy
@@ -140,8 +142,7 @@ class Report:
 
     def long_exit(self, data, datetime, symbol):
         if not self.ongoing_trades[symbol]:
-            print 'Could not simulate LongExit for %s on %s, no corresponding action' %(symbol, datetime)
-            return
+            raise InvalidExit('Could not simulate LongExit for %s on %s, no corresponding action' %(symbol, datetime))
         trade = self.ongoing_trades[symbol]
         self.ongoing_trades[symbol] = None
         price = data['%s_Open' %symbol]
@@ -174,8 +175,7 @@ class Report:
 
     def short_exit(self, data, datetime, symbol):
         if not self.ongoing_trades[symbol]:
-            print 'Did not simulate LongExit for %s on %s - probably not enough capital' %(symbol, datetime)
-            return
+            raise InvalidExit('Did not simulate ShortExit for %s on %s - probably not enough capital' %(symbol, datetime))
         trade = self.ongoing_trades[symbol]
         self.ongoing_trades[symbol] = None
         price = data['%s_Open' %symbol]
@@ -230,7 +230,7 @@ class Report:
         or another time series.
         """
         returns = self.available_capital_history.pct_change()
-        if benchmark == None:
+        if benchmark is None:
             return np.sqrt(periods) * returns.mean() / returns.std()
         elif type(benchmark) in (int, float, long):
             excess_returns = returns - 0.05/periods
