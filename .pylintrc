@@ -4,4 +4,4 @@ ignored-modules = numpy,talib
 
 [MESSAGES CONTROL]
 
-disable=too-many-instance-attributes,too-few-public-methods
+disable=too-many-instance-attributes,too-few-public-methods,too-many-arguments
