@@ -63,7 +63,7 @@ class TestStrategy(unittest.TestCase):
         exit_crit = criteria.BarsSinceShort(self.symbol, 2)
         enter_crit_group = criteria_group.CriteriaGroup([enter_crit], Short(), self.symbol)
         exit_crit_group = criteria_group.CriteriaGroup([exit_crit], ShortExit(), self.symbol)
-        tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))
+        tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(5))
         strat = strategy.Strategy(self.d, [enter_crit_group, exit_crit_group], tp)
         strat.simulate()
         report_overview = strat.report.overview()
