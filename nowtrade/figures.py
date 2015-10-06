@@ -16,7 +16,7 @@ TI = 0 # Technical Indicator
 TYPE = 1 # Chart type - line, bar, etc
 COLOR = 2 # TI Color
 
-class Figure(object): # pylint: disable=too-many-instance-attributes
+class Figure(object):
     """
     @param dataset: A Dataset or Strategy object.
     """

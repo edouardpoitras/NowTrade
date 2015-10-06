@@ -15,7 +15,7 @@ class InvalidExit(Exception):
     """
     pass
 
-class Report(object):  # pylint: disable=too-many-instance-attributes
+class Report(object):
     """
     The Report class is used to generate stratetgy metrics and reports.
     """
