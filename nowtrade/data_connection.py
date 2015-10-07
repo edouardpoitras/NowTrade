@@ -243,7 +243,7 @@ class MongoDatabaseConnection(DataConnection):
     def __init__(self, host='127.0.0.1', port=27017, database='symbol-data', \
                  username=None, password=None):
         DataConnection.__init__(self)
-        from pymongo import Connection
+        from pymongo import MongoClient
         self.connection = None
         self.database = None
         self.host = host
@@ -251,8 +251,8 @@ class MongoDatabaseConnection(DataConnection):
         self.database = database
         self.username = username
         self.password = password
-        self.connection = Connection(host, port)
-        self.databbase = self.connection[database]
+        self.connection = MongoClient(host, port)
+        self.database = self.connection[database]
 
     def get_data(self, symbol, start, end, symbol_in_column=True):
         """
