@@ -36,12 +36,8 @@ class Dataset(object):
                            periods, \
                            granularity))
     def __str__(self):
-        return 'Dataset(symbol_list=%s, \
-                        data_connection=%s, \
-                        start_datetime=%s, \
-                        end_datetime=%s, \
-                        periods=%s, \
-                        granularity=%s)' \
+        return 'Dataset(symbol_list=%s, data_connection=%s, start_datetime=%s, \
+end_datetime=%s, periods=%s, granularity=%s)' \
                        %(self.symbol_list, \
                          self.data_connection, \
                          self.start_datetime, \
@@ -49,12 +45,8 @@ class Dataset(object):
                          self.periods, \
                          self.granularity)
     def __repr__(self):
-        return 'Dataset(symbol_list=%s, \
-                        data_connection=%s, \
-                        start_datetime=%s, \
-                        end_datetime=%s, \
-                        periods=%s, \
-                        granularity=%s)' \
+        return 'Dataset(symbol_list=%s, data_connection=%s, start_datetime=%s, \
+end_datetime=%s, periods=%s, granularity=%s)' \
                        %(self.symbol_list, \
                          self.data_connection, \
                          self.start_datetime, \

@@ -18,20 +18,8 @@ class TradingProfile(object):
         self.logger = logger.Logger(self.__class__.__name__)
         self.logger.info('Initialized - %s' %self)
     def __str__(self):
-        return 'TradingProfile(capital=%s, \
-                               trading_amount=%s, \
-                               trading_fee=%s, \
-                               slippage=%s' \
-                              %(self.capital, \
-                                self.trading_amount, \
-                                self.trading_fee, \
-                                self.slippage)
+        return 'TradingProfile(capital=%s, trading_amount=%s, trading_fee=%s, slippage=%s' \
+                              %(self.capital, self.trading_amount, self.trading_fee, self.slippage)
     def __repr__(self):
-        return 'TradingProfile(capital=%s, \
-                               trading_amount=%s, \
-                               trading_fee=%s, \
-                               slippage=%s' \
-                              %(self.capital, \
-                                self.trading_amount, \
-                                self.trading_fee, \
-                                self.slippage)
+        return 'TradingProfile(capital=%s, trading_amount=%s, trading_fee=%s, slippage=%s' \
+                              %(self.capital, self.trading_amount, self.trading_fee, self.slippage)
