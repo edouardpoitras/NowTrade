@@ -30,7 +30,7 @@ Here is a list of reasons you may want to use NowTrade over alternatives:
 * Implement strategies easily
 * Flexible data connections (store data locally from any remote data connection)
 * Easily implement machine learning into strategies (neural networks, random forest, etc)
-* Simple and small code base
+* Simple and small and clean code base (build failure on pylint warning)
 
 ### Cons
 List of reasons you may not want to choose NowTrade over alternatives:
