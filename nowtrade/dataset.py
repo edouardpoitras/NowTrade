@@ -94,7 +94,8 @@ class Dataset(object):
         """
         assert len(self.data_frame) > 0, 'No data loaded yet'
         self.logger.info('Resampling data to %s' %timeframe)
-        if symbol: self._resample(timeframe, volume, adjusted_close, symbol)
+        if symbol:
+            self._resample(timeframe, volume, adjusted_close, symbol)
         else: # Do all symbols in symbol list
             for symbol in self.symbol_list:
                 self._resample(timeframe, volume, adjusted_close, str(symbol))
@@ -103,19 +104,31 @@ class Dataset(object):
         self.logger.debug('Resampling result: %s' %self.data_frame)
 
     def _resample(self, timeframe, volume, adjusted_close, symbol):
+        """
+        Should not use this directly.  Use resample() instead.
+        """
         how = {'%s_Open' %symbol: 'first', '%s_High' %symbol: 'max',
                '%s_Low' %symbol: 'min', '%s_Close' %symbol: 'last'}
-        if volume: how['%s_Volume' %symbol] = 'sum'
-        if adjusted_close: how['%s_AdjClose' %symbol] = 'last'
+        if volume:
+            how['%s_Volume' %symbol] = 'sum'
+        if adjusted_close:
+            how['%s_AdjClose' %symbol] = 'last'
         out = self.data_frame.resample(timeframe, how=how)
         self.data_frame['%s_Open' %symbol] = out['%s_Open' %symbol]
         self.data_frame['%s_High' %symbol] = out['%s_High' %symbol]
         self.data_frame['%s_Low' %symbol] = out['%s_Low' %symbol]
         self.data_frame['%s_Close' %symbol] = out['%s_Close' %symbol]
-        if volume: self.data_frame['%s_Volume' %symbol] = out['%s_Volume' %symbol]
-        if adjusted_close: self.data_frame['%s_AdjClose' %symbol] = out['%s_AdjClose' %symbol]
+        if volume:
+            self.data_frame['%s_Volume' %symbol] = out['%s_Volume' %symbol]
+        if adjusted_close:
+            self.data_frame['%s_AdjClose' %symbol] = out['%s_AdjClose' %symbol]
 
     def add_technical_indicator(self, technical_indicator):
+        """
+        Add the technical indicator to the dataset.
+        Must be performed before refering a technical indicator in a
+        running strategy.
+        """
         self.logger.info('Adding technical indicator: %s' %technical_indicator)
         technical_indicator.results(self.data_frame)
         self.technical_indicators.append(technical_indicator)
