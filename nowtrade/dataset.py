@@ -1,9 +1,17 @@
+"""
+The dataset module uses a data connection to retrieve symbol data for strategy
+simulation.
+"""
 import pandas as pd
-import numpy as np
 from nowtrade import logger
 
-class Dataset():
-    def __init__(self, symbol_list, data_connection, start_datetime=None, end_datetime=None, periods=None, granularity=None):
+class Dataset(object):
+    """
+    The Dataset object utilizes the pandas DataFrame as a backend for all
+    the data handling.
+    """
+    def __init__(self, symbol_list, data_connection, start_datetime=None, \
+                 end_datetime=None, periods=None, granularity=None):
         self.symbol_list = symbol_list
         # Either specify a start and end date or a number of periods since now
         assert periods != None or start_datetime != None
@@ -15,19 +23,62 @@ class Dataset():
         self.data_frame = pd.DataFrame()
         self.technical_indicators = []
         self.logger = logger.Logger(self.__class__.__name__)
-        self.logger.info('symbol_list: %s  data_connection: %s  start_datetime: %s  end_datetime: %s  periods: %s  granularity: %s'
-                %(symbol_list, data_connection, start_datetime, end_datetime, periods, granularity))
+        self.logger.info('symbol_list: %s  \
+                          data_connection: %s  \
+                          start_datetime: %s  \
+                          end_datetime: %s  \
+                          periods: %s  \
+                          granularity: %s'
+                         %(symbol_list, \
+                           data_connection, \
+                           start_datetime, \
+                           end_datetime, \
+                           periods, \
+                           granularity))
     def __str__(self):
-        return 'Dataset(symbol_list=%s, data_connection=%s, start_datetime=%s, end_datetime=%s, periods=%s, granularity=%s)' %(self.symbol_list, self.data_connection, self.start_datetime, self.end_datetime, self.periods, self.granularity)
+        return 'Dataset(symbol_list=%s, \
+                        data_connection=%s, \
+                        start_datetime=%s, \
+                        end_datetime=%s, \
+                        periods=%s, \
+                        granularity=%s)' \
+                       %(self.symbol_list, \
+                         self.data_connection, \
+                         self.start_datetime, \
+                         self.end_datetime, \
+                         self.periods, \
+                         self.granularity)
     def __repr__(self):
-        return 'Dataset(symbol_list=%s, data_connection=%s, start_datetime=%s, end_datetime=%s, periods=%s, granularity=%s)' %(self.symbol_list, self.data_connection, self.start_datetime, self.end_datetime, self.periods, self.granularity)
+        return 'Dataset(symbol_list=%s, \
+                        data_connection=%s, \
+                        start_datetime=%s, \
+                        end_datetime=%s, \
+                        periods=%s, \
+                        granularity=%s)' \
+                       %(self.symbol_list, \
+                         self.data_connection, \
+                         self.start_datetime, \
+                         self.end_datetime, \
+                         self.periods, \
+                         self.granularity)
 
     def load_data(self, realtime=False):
+        """
+        Does the actual fetching and storage of the data in the
+        dataframe attribute.
+        """
         for symbol in self.symbol_list:
             self.logger.info('Loading data for %s (realtime=%s)' %(symbol, realtime))
-            if self.periods: df = self.data_connection.get_data(symbol, self.granularity, self.periods, realtime=realtime)
-            else: df = self.data_connection.get_data(symbol, self.start_datetime, self.end_datetime)
-            self.data_frame = self.data_frame.combine_first(df)
+            if self.periods:
+                dataframe = self.data_connection.get_data(symbol, \
+                                                          self.granularity, \
+                                                          self.periods, \
+                                                          realtime=realtime)
+            else:
+                dataframe = self.data_connection.get_data(symbol, \
+                                                          self.start_datetime, \
+                                                          self.end_datetime)
+            self.data_frame = self.data_frame.combine_first(dataframe)
 
     def resample(self, timeframe, volume=True, adjusted_close=False, symbol=None):
         """
