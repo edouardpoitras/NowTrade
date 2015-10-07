@@ -1,3 +1,9 @@
+"""
+Various NowTrade configurtion options.
+
+This will eventually be moved to a external configuration file that will be
+read from any directory in your path.
+"""
 ### NowTrade Global Settings ###
 
 
@@ -86,5 +92,5 @@ LOGGING_DEFAULT_FILE = logging.WARNING
 
 ## Notification Settings ##
 GMAIL_USERNAME = 'sender@gmail.com'
-GMAIL_PASSWORD= 'password'
+GMAIL_PASSWORD = 'password'
 RECIPIENT = 'recipient@email.com'

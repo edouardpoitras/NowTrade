@@ -30,7 +30,7 @@ install:
 script:
     - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
     - nosetests --with-timer --with-coverage --cover-package=nowtrade
-    - pylint nowtrade --rcfile=.pylintrc --errors-only
+    - pylint nowtrade --rcfile=.pylintrc
 
 after_success:
     - coveralls
