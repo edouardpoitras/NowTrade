@@ -1,7 +1,7 @@
-import time, datetime
+import datetime
 from nowtrade import symbol_list, data_connection, dataset, technical_indicator, \
                      criteria, criteria_group, trading_profile, trading_amount, \
-                     trading_fee, report, strategy, ensemble
+                     trading_fee, strategy, ensemble
 from nowtrade.action import Long, Short, LongExit, ShortExit
 
 stocks = symbol_list.SymbolList(['GOOGL'])

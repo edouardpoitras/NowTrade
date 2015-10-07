@@ -1,7 +1,7 @@
-import time, datetime
+import datetime
 from nowtrade import symbol_list, data_connection, dataset, technical_indicator, \
                      criteria, criteria_group, trading_profile, trading_amount, \
-                     trading_fee, report, strategy, neural_network
+                     trading_fee, strategy, neural_network
 from nowtrade.action import Long, Short, LongExit, ShortExit
 
 dc = data_connection.YahooConnection()

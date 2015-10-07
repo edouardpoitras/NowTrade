@@ -9,7 +9,6 @@ from nowtrade.action import Long, LongExit
 from nowtrade.trading_profile import TradingProfile
 from nowtrade.trading_amount import StaticAmount
 from nowtrade.trading_fee import StaticFee
-from nowtrade.report import Report
 from nowtrade.strategy import Strategy
 
 # Create our stock list to inform our data connection which stocks to retrieve
