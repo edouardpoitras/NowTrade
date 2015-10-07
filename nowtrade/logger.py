@@ -1,3 +1,8 @@
+"""
+NowTrade module wrapper for the python logging module.
+Allows for independent logging levels of different NowTrade components and
+separate configurations for a console and file handler.
+"""
 import logging
 from nowtrade import configuration
 
@@ -7,75 +12,127 @@ WARNING = logging.WARNING
 INFO = logging.INFO
 DEBUG = logging.DEBUG
 
-class Logger:
+class Logger(object):
     """
     A simple wrapper around the python logging module.
     Logs to both a file and the console.
     """
-    def __init__(self, name, logFile=configuration.LOG_FILE, consoleLvl=configuration.LOGGING_DEFAULT_CONSOLE, fileLvl=configuration.LOGGING_DEFAULT_FILE):
+    def __init__(self, name, log_file=configuration.LOG_FILE, \
+                 console_lvl=configuration.LOGGING_DEFAULT_CONSOLE, \
+                 file_lvl=configuration.LOGGING_DEFAULT_FILE):
         """
         @type name: string
         @param name: The name of the logger object.
-        @type logFile: string
-        @param logFile: The logger filename.
-        @type consoleLvl: int
-        @param consoleLvl: The logging level of the console logger (see python logging module)
-        @type fileLvl: int
-        @param fileLvl: The logging level of the file logger (see python logging module)
+        @type log_file: string
+        @param log_file: The logger filename.
+        @type console_lvl: int
+        @param console_lvl: The logging level of the console logger (see python logging module)
+        @type file_lvl: int
+        @param file_lvl: The logging level of the file logger (see python logging module)
         """
         self.name = name
-        self.logFile = logFile
-        self.consoleLvl = self.getConsoleLevel(name, consoleLvl)
-        self.fileLvl = self.getFileLevel(name, fileLvl)
+        self.log_file = log_file
+        self.console_lvl = self.get_console_level(name, console_lvl)
+        self.file_lvl = self.get_file_level(name, file_lvl)
         self.logger = logging.getLogger(name)
-        self.fileFormatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s: %(message)s')
-        self.fileLoggingHandler = None
-        self.consoleFormatter = logging.Formatter('%(levelname)-8s %(name)s: %(message)s')
-        self.consoleLoggingHandler = None
+        self.file_formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(name)s: %(message)s')
+        self.file_logging_handler = None
+        self.console_formatter = logging.Formatter('%(levelname)-8s %(name)s: %(message)s')
+        self.console_logging_handler = None
         if len(self.logger.handlers) < 1:
             self.logger.propagate = False # Required to stop root logger
             self.logger.setLevel(logging.DEBUG)
-            self.setFileLevel(self.fileLvl)
-            self.setConsoleLevel(self.consoleLvl)
-            self.debug('Logger initialized  Log file: %s  Log level: %s  Console Log Level: %s' %(self.logFile, fileLvl, consoleLvl))
-    def getLoggerLevel(self, name, default, out):
-        try: return getattr(configuration, 'LOGGING_%s_%s' %(name, out))
-        except: return default
-    def getConsoleLevel(self, name, default):
-        return self.getLoggerLevel(name, default, 'CONSOLE')
-    def getFileLevel(self, name, default):
-        return self.getLoggerLevel(name, default, 'FILE')
-    def setFileLevel(self, lvl):
-        if lvl == None: return
-        try: self.logger.removeHandler(self.fileLoggingHandler)
-        except: pass
-        self.fileLoggingHandler = logging.FileHandler(self.logFile)
-        self.fileLoggingHandler.setLevel(lvl)
-        self.fileLoggingHandler.setFormatter(self.fileFormatter)
-        self.logger.addHandler(self.fileLoggingHandler)
-    def setConsoleLevel(self, lvl):
-        if lvl == None: return
-        try: self.logger.removeHandler(self.consoleLoggingHandler)
-        except: pass
-        self.consoleLoggingHandler = logging.StreamHandler()
-        self.consoleLoggingHandler.setLevel(lvl)
-        self.consoleLoggingHandler.setFormatter(self.consoleFormatter)
-        self.logger.addHandler(self.consoleLoggingHandler)
-    def debug(self, message): self.logger.debug(message)
-    def info(self, message): self.logger.info(message)
-    def warning(self, message): self.logger.warning(message)
-    def error(self, message): self.logger.error(message)
-    def critical(self, message): self.logger.critical(message)
-    def exception(self, message): self.logger.exception(message)
+            self.set_file_level(self.file_lvl)
+            self.set_console_level(self.console_lvl)
+            self.debug('Logger initialized  Log file: %s  \
+                                            Log level: %s \
+                                            Console Log Level: %s' \
+                                            %(self.log_file, \
+                                              self.file_lvl, \
+                                              self.console_lvl))
+    def get_logger_level(self, name, default, out):
+        """
+        Returns the logger level of a NowTrade object.
+        """
+        try:
+            return getattr(configuration, 'LOGGING_%s_%s' %(name, out))
+        except AttributeError:
+            return default
+    def get_console_level(self, name, default):
+        """
+        Returns the console logging level of a NowTrade object.
+        """
+        return self.get_logger_level(name, default, 'CONSOLE')
+    def get_file_level(self, name, default):
+        """
+        Returns the file logging level of a NowTrade object.
+        """
+        return self.get_logger_level(name, default, 'FILE')
+    def set_file_level(self, lvl):
+        """
+        Sets the file logging level of the current logging object.
+        """
+        if lvl == None:
+            return
+        self.logger.removeHandler(self.file_logging_handler)
+        self.file_logging_handler = logging.FileHandler(self.log_file)
+        self.file_logging_handler.setLevel(lvl)
+        self.file_logging_handler.setFormatter(self.file_formatter)
+        self.logger.addHandler(self.file_logging_handler)
+    def set_console_level(self, lvl):
+        """
+        Sets the console logging level of the current logging object.
+        """
+        if lvl == None:
+            return
+        self.logger.removeHandler(self.console_logging_handler)
+        self.console_logging_handler = logging.StreamHandler()
+        self.console_logging_handler.setLevel(lvl)
+        self.console_logging_handler.setFormatter(self.console_formatter)
+        self.logger.addHandler(self.console_logging_handler)
+    def debug(self, message):
+        """
+        Add debug logging statement.
+        """
+        self.logger.debug(message)
+    def info(self, message):
+        """
+        Add info logging statement.
+        """
+        self.logger.info(message)
+    def warning(self, message):
+        """
+        Add warning logging statement.
+        """
+        self.logger.warning(message)
+    def error(self, message):
+        """
+        Add error logging statement.
+        """
+        self.logger.error(message)
+    def critical(self, message):
+        """
+        Add critical logging statement.
+        """
+        self.logger.critical(message)
+    def exception(self, message):
+        """
+        Add exception logging statement.
+        """
+        self.logger.exception(message)
     # Used to enable pickling
     def __getstate__(self):
-        d = dict(self.__dict__)
-        del d['logger']
-        try: del d['fileLoggingHandler']
-        except: pass
-        try: del d['consoleLoggingHandler']
-        except: pass
-        return d
-    def __setstate__(self, d):
-        self.__dict__.update(d)
-        self.__init__(self.name, self.logFile, self.consoleLvl, self.fileLvl)
+        values = dict(self.__dict__)
+        del values['logger']
+        try:
+            del values['file_logging_handler']
+        except KeyError:
+            pass
+        try:
+            del values['console_logging_handler']
+        except KeyError:
+            pass
+        return values
+    def __setstate__(self, data):
+        self.__dict__.update(data)
+        self.__init__(self.name, self.log_file, self.console_lvl, self.file_lvl)

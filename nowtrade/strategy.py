@@ -1,9 +1,8 @@
-import time
-import urllib2
-import datetime
-import uuid
+"""
+Strategy module iterates through all trading data, coordinates all criteria
+groups with actions, and feeds information to the report object for metrics.
+"""
 import pandas as pd
-import numpy as np
 from nowtrade import logger
 from nowtrade.action import LONG, SHORT, NO_ACTION, LONG_EXIT, SHORT_EXIT, ACTIONS_MAP
 from nowtrade import report
@@ -14,7 +13,7 @@ from nowtrade import report
 # This warning is being surpressed with the following line:
 pd.options.mode.chained_assignment = None
 
-class Strategy:
+class Strategy(object):
     """
     All strategies perform the enter and exit actions on the OPEN of the bar.
     On every day, criterias are checked, and actions are queued up for the next
@@ -33,11 +32,16 @@ class Strategy:
         self.logger.info('Initialized - %s' %self)
 
     def __str__(self):
-        return 'Strategy(dataset=%s, criteria_groups=%s, trading_profile=%s)' %(self.dataset, self.criteria_groups, self.trading_profile)
+        return 'Strategy(dataset=%s, criteria_groups=%s, trading_profile=%s)' \
+                %(self.dataset, self.criteria_groups, self.trading_profile)
     def __repr__(self):
-        return 'Strategy(dataset=%s, criteria_groups=%s, trading_profile=%s)' %(self.dataset, self.criteria_groups, self.trading_profile)
+        return 'Strategy(dataset=%s, criteria_groups=%s, trading_profile=%s)' \
+                %(self.dataset, self.criteria_groups, self.trading_profile)
 
     def simulate(self):
+        """
+        The entry point to start the strategy simulation.
+        """
         self.logger.info('Simulating strategy...')
         self.realtime_data_frame = pd.DataFrame()
         for row_data in self.dataset.data_frame.iterrows():
@@ -46,25 +50,26 @@ class Strategy:
 
     def process_new_data(self, data):
         """
-        Real-time trading method.
-        Here we're assuming that data holds all the
-        symbol data we'll need for the whole time slice.
+        Here we're assuming the data parameter holds all the symbol data
+        we'll need for the whole time slice.
         @type data: pandas.DataFrame
-        @param data: Needs to have at least the OHLC for the
-        new time slice of data.  There is no limit as to how
-        many time slices of data can be contained in data.
-        However, more data means more computationally
+        @param data: Needs to have at least the OHLC for the new time slice
+        of data. There is no limit as to how many time slices of data can be
+        contained in data. However, more data means more computationally
         intensive.
         """
         self.logger.debug(data.index[-1])
         self.realtime_data_frame = self.realtime_data_frame.combine_first(data)
         # Process Standard Metrics
         for symbol in self.dataset.symbol_list:
-            if self.first_pass: self._create_actions_status_columns(self.realtime_data_frame, symbol)
+            if self.first_pass:
+                self._create_actions_status_columns(self.realtime_data_frame, symbol)
             # Add previous action and status to dataset
             # Keep track of market actions for each symbol
-            try: self.realtime_data_frame['ACTIONS_%s' %symbol][-1] = self.upcoming_actions[symbol]
-            except: self.realtime_data_frame['ACTIONS_%s' %symbol][-1] = NO_ACTION
+            try:
+                self.realtime_data_frame['ACTIONS_%s' %symbol][-1] = self.upcoming_actions[symbol]
+            except KeyError:
+                self.realtime_data_frame['ACTIONS_%s' %symbol][-1] = NO_ACTION
             # Keep track of market position for each symbol
             self.realtime_data_frame['STATUS_%s' %symbol][-1] = self._get_status(symbol)
             # Update the PL's
@@ -74,10 +79,11 @@ class Strategy:
         self.first_pass = False
         # Process criteria
         cg_data = {}
-        for cg in self.criteria_groups:
-            if cg.symbol not in cg_data: cg_data[cg.symbol] = []
-            cg_result = cg.get_result(self.realtime_data_frame)
-            cg_data[cg.symbol].append(cg_result)
+        for crit_group in self.criteria_groups:
+            if crit_group.symbol not in cg_data:
+                cg_data[crit_group.symbol] = []
+            cg_result = crit_group.get_result(self.realtime_data_frame)
+            cg_data[crit_group.symbol].append(cg_result)
         self.logger.debug('Criteria Group Data: %s' %cg_data)
         # Determine action based on all criteria group results
         for symbol in cg_data:
@@ -96,13 +102,15 @@ class Strategy:
         for symbol in self.upcoming_actions:
             action = self.upcoming_actions[symbol]
             estimated_enter_value = self.realtime_data_frame['%s_Open' %symbol][-1]
-            estimated_shares = self.trading_profile.trading_amount.get_shares(estimated_enter_value, self.report.available_money)
+            estimated_shares = self.trading_profile.trading_amount.get_shares(\
+                               estimated_enter_value, self.report.available_money)
             actions[symbol] = {'action': action,
                                'action_name': ACTIONS_MAP[action],
                                'enter_on': 'OPEN',
                                'estimated_enter_value': estimated_enter_value,
                                'estimated_shares': estimated_shares,
-                               'estimated_fees': self.trading_profile.trading_fee.get_fee(estimated_enter_value, estimated_shares),
+                               'estimated_fees': self.trading_profile.trading_fee.get_fee(\
+                                                 estimated_enter_value, estimated_shares),
                                'estimated_money_required': estimated_enter_value * estimated_shares}
         return actions
 
@@ -111,27 +119,49 @@ class Strategy:
         Handles any conflicting actions based on multiple criteria groups.
         """
         # Can supply a pd.Series or a list
-        try: values = values.values
-        except: pass
-        if LONG in values and SHORT in values: return NO_ACTION
-        if LONG_EXIT in values and SHORT_EXIT in values: return NO_ACTION
-        if LONG_EXIT in values: return LONG_EXIT
-        if SHORT_EXIT in values: return SHORT_EXIT
-        if LONG in values: return LONG
-        if SHORT in values: return SHORT
+        try:
+            values = values.values
+        except AttributeError:
+            pass
+        if LONG in values and SHORT in values or \
+           LONG_EXIT in values and SHORT_EXIT in values:
+            return NO_ACTION
+        if LONG_EXIT in values:
+            return LONG_EXIT
+        if SHORT_EXIT in values:
+            return SHORT_EXIT
+        if LONG in values:
+            return LONG
+        if SHORT in values:
+            return SHORT
         return NO_ACTION
 
     def _get_status(self, symbol):
+        """
+        Helper method to get the current symbol status based the last action.
+        """
         action = self.realtime_data_frame['ACTIONS_%s' %symbol][-1]
         # Replace SHORT with -1 and SHORT_EXIT with 1
-        if action == SHORT: action = -1
-        elif action == SHORT_EXIT: action = 1
-        if len(self.realtime_data_frame) < 2: return action
-        else: return self.realtime_data_frame['STATUS_%s' %symbol][-2] + action
+        if action == SHORT:
+            action = -1
+        elif action == SHORT_EXIT:
+            action = 1
+        if len(self.realtime_data_frame) < 2:
+            return action
+        else:
+            return self.realtime_data_frame['STATUS_%s' %symbol][-2] + action
 
     def _create_actions_status_columns(self, data_frame, symbol):
+        """
+        Helper method to create the symbol's actions and status column in
+        the data_frame.
+        """
         cols = data_frame.columns
-        try: cols.get_loc('ACTIONS_%s' %symbol)
-        except KeyError, e: data_frame['ACTIONS_%s' %symbol] = NO_ACTION
-        try: cols.get_loc('STATUS_%s' %symbol)
-        except KeyError, e: data_frame['STATUS_%s' %symbol] = NO_ACTION
+        try:
+            cols.get_loc('ACTIONS_%s' %symbol)
+        except KeyError:
+            data_frame['ACTIONS_%s' %symbol] = NO_ACTION
+        try:
+            cols.get_loc('STATUS_%s' %symbol)
+        except KeyError:
+            data_frame['STATUS_%s' %symbol] = NO_ACTION

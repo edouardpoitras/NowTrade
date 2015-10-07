@@ -1,10 +1,11 @@
+"""
+Module that enables the use of neural networks with NowTrade.
+"""
 import cPickle
 import numpy as np
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.datasets.supervised import SupervisedDataSet
 from pybrain.supervised.trainers.backprop import BackpropTrainer
-#from pybrain.supervised.trainers import BackpropTrainer, RPropMinusTrainer
-from pybrain.structure.networks import FeedForwardNetwork
 from nowtrade import logger
 
 # Networks
@@ -23,32 +24,61 @@ BACKPROP_TRAINER = 0
 RPROP_TRAINER = 1
 
 def load(network, dataset=None):
+    """
+    Load a previously pickled neural network.
+    """
     network = cPickle.loads(network)
-    if dataset: network.build_network(dataset, new=False)
+    if dataset:
+        network.build_network(dataset, new=False)
     return network
 
 def load_from_file(filename, dataset=None):
-    f = open(filename, 'rb')
-    network = cPickle.load(f)
-    f.close()
-    if dataset: network.build_network(dataset, new=False)
+    """
+    Load a neural network from a previous one saved to file.
+    """
+    file_handler = open(filename, 'rb')
+    network = cPickle.load(file_handler)
+    file_handler.close()
+    if dataset:
+        network.build_network(dataset, new=False)
     return network
 
-class InvalidNetworkType(Exception): pass
-class InvalidTrainerType(Exception): pass
-class InvalidNetworkDatasetType(Exception): pass
-class InvalidDataset(Exception): pass
+class InvalidNetworkType(Exception):
+    """
+    Exception raised when an invalid network type is specified.
+    """
+    pass
+class InvalidTrainerType(Exception):
+    """
+    Exception raised when an invalid trainer type is specified.
+    """
+    pass
+class InvalidNetworkDatasetType(Exception):
+    """
+    Exception raised when an invalid network dataset type is specified.
+    """
+    pass
+class InvalidDataset(Exception):
+    """
+    Exception raised when a invalid dataset is specified.
+    """
+    pass
 
-class NeuralNetwork:
+class NeuralNetwork(object):
+    """
+    The neural network class does all the heavy lifting to incorporate pybrain
+    neural networks into the NowTrade ecosystem.
+    """
     def __init__(self, train_data, prediction_data, network_type=FEED_FORWARD_NETWORK,
-                       network_dataset_type=SUPERVISED_DATASET,
-                       trainer_type=BACKPROP_TRAINER):
+                 network_dataset_type=SUPERVISED_DATASET,
+                 trainer_type=BACKPROP_TRAINER):
         self.train_data = train_data
         self.prediction_data = prediction_data
         self.network_type = network_type
         self.network_dataset_type = network_dataset_type
         self.trainer_type = trainer_type
         self.network = None
+        self.network_dataset = None
         self.dataset = None
         self.trainer = None
         self.trained_iterations = 0
@@ -57,30 +87,41 @@ class NeuralNetwork:
         self.hidden_layers = None
         self.prediction_window = None
         self.logger = logger.Logger(self.__class__.__name__)
-        self.logger.info('train_data: %s  prediction_data: %s, network_type: %s, network_dataset_type: %s, trainer_type: %s'
-                %(train_data, prediction_data, network_type, network_dataset_type, trainer_type))
+        self.logger.info('train_data: %s  prediction_data: %s, network_type: %s, \
+                          network_dataset_type: %s, trainer_type: %s'
+                         %(train_data, prediction_data, network_type, \
+                           network_dataset_type, trainer_type))
 
     def save(self):
+        """
+        Returns the pickled trained/tested neural network as a string.
+        """
         return cPickle.dumps(self)
 
     def save_to_file(self, filename):
         """
+        Saves a neural network to file for later use.
+
         Look into pybrain.datasets.supervised.SupervisedDataSet.saveToFile()
         http://pybrain.org/docs/api/datasets/superviseddataset.html
         """
-        f = open(filename, 'wb')
-        cPickle.dump(self, f)
-        f.close()
+        file_handler = open(filename, 'wb')
+        cPickle.dump(self, file_handler)
+        file_handler.close()
 
     def build_network(self, dataset, new=True, **kwargs):
-        if 'hidden_layers' in kwargs: self.hidden_layers = kwargs['hidden_layers']
-        else: assert self.hidden_layers != None
-        if 'prediction_window' in kwargs: self.prediction_window = kwargs['prediction_window']
-        else: assert self.prediction_window != None
-        if 'learning_rate' in kwargs: self.learning_rate = kwargs['learning_rate']
-        else: assert self.learning_rate != None
-        if 'momentum' in kwargs: self.momentum = kwargs['momentum']
-        else: assert self.momentum != None
+        """
+        Builds a neural network using the dataset provided.
+        Expected keyword args:
+            - 'hidden_layers'
+            - 'prediction_window'
+            - 'learning_rate'
+            - 'momentum'
+        """
+        self.hidden_layers = kwargs.get('hidden_layers', None)
+        self.prediction_window = kwargs.get('prediction_window', None)
+        self.learning_rate = kwargs.get('learning_rate', None)
+        self.momentum = kwargs.get('momentum', None)
         if not new:
             self.network.sorted = False
             self.network.sortModules()
@@ -96,15 +137,17 @@ class NeuralNetwork:
             else: raise InvalidNetworkDatasetType()
             if self.trainer_type == BACKPROP_TRAINER:
                 self.trainer = BackpropTrainer(self.network,
-                                            learningrate=self.learning_rate,
-                                            momentum=self.momentum,
-                                            verbose=True)
+                                               learningrate=self.learning_rate,
+                                               momentum=self.momentum,
+                                               verbose=True)
                 self.trainer.setData(self.network_dataset)
             else: raise InvalidTrainerType()
 
     def ready_supervised_dataset(self, dataset):
         """
-        #TODO: Need to randomize the data being fed to the network.
+        Ready the supervised dataset for training.
+
+        @TODO: Need to randomize the data being fed to the network.
         See randomBatches() here: http://pybrain.org/docs/api/datasets/superviseddataset.html
         """
         self.network_dataset = SupervisedDataSet(len(self.train_data), 1)
@@ -113,8 +156,8 @@ class NeuralNetwork:
         results = np.log(dataset.data_frame[self.prediction_data].shift(-self.prediction_window))
         training_values['PREDICTION_%s' %self.prediction_data[0]] = results
         training_values = training_values.dropna()
-        for i, row_data in enumerate(training_values.iterrows()):
-            datetime, data = row_data
+        for _, row_data in enumerate(training_values.iterrows()):
+            _, data = row_data
             sample = list(data[:-1])
             result = [data[-1]]
             self.network_dataset.addSample(sample, result)
@@ -123,24 +166,38 @@ class NeuralNetwork:
         """
         Trains the network the number of iteration specified in the cycles parameter.
         """
-        for i in range(cycles):
+        for _ in range(cycles):
             res = self.trainer.train()
             self.trained_iterations += 1
         return res
 
-    def train_until_convergence(self, max_cycles=None,
-                                      continue_cycles=10,
-                                      validation_proportion=0.25):
-        self.trainer.trainUntilConvergence(100)
+    def train_until_convergence(self, max_cycles=1000, continue_cycles=10,
+                                validation_proportion=0.25):
+        """
+        Wrapper around the pybrain BackpropTrainer trainUntilConvergence method.
+
+        @see: http://pybrain.org/docs/api/supervised/trainers.html
+        """
+        self.trainer = \
+            self.trainer.trainUntilConvergence(maxEpochs=max_cycles,
+                                               continueEpochs=continue_cycles,
+                                               validationProportion=validation_proportion)
 
     def _activate(self, data):
+        """
+        Activates the network using the data specified.
+        Returns the network's prediction.
+        """
         return self.network.activate(data)[0]
 
     def activate_all(self, data_frame):
-        df = np.log(data_frame[self.train_data])
+        """
+        Activates the network for all values in the dataframe specified.
+        """
+        dataframe = np.log(data_frame[self.train_data])
         res = []
-        for i, row_data in enumerate(df.iterrows()):
-            datetime, data = row_data
+        for _, row_data in enumerate(dataframe.iterrows()):
+            _, data = row_data
             sample = list(data)
             res.append(self._activate(sample))
         return np.exp(res)

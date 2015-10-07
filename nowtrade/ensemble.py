@@ -1,12 +1,10 @@
+"""
+Module that enables the use of ensembles in NowTrade.
+"""
 import cPickle
 import numpy as np
 from itertools import chain
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, \
-                             ExtraTreesRegressor, ExtraTreesClassifier, \
-                             GradientBoostingRegressor, GradientBoostingClassifier
-                             #GradientBoostingRegressor, GradientBoostingClassifier, \
-                             #AdaBoostRegressor, AdaBoostClassifier, \
-from sklearn.cross_validation import cross_val_score
+from sklearn.ensemble import RandomForestRegressor #, RandomForestClassifier
 from nowtrade import logger
 
 RANDOM_FOREST_REGRESSOR = 'Random Forest Regressor'
@@ -18,18 +16,32 @@ ADA_BOOST_CLASSIFIER = 'Ada Boost Classifier'
 GRADIENT_BOOSTING_REGRESSOR = 'Gradient Boosting Regressor'
 GRADIENT_BOOSTING_CLASSIFIER = 'Gradient Boosting Classifier'
 
-class UnknownEnsembleType(Exception): pass
+class UnknownEnsembleType(Exception):
+    """
+    Exception used when an invalid ensemble type was specified.
+    """
+    pass
 
 def load(ensemble):
+    """
+    Load a previously pickled ensemble.
+    """
     return cPickle.loads(ensemble)
 
 def load_from_file(filename):
-    f = open(filename, 'rb')
-    ensemble = cPickle.load(f)
-    f.close()
+    """
+    Load an ensemble from a previous one saved to file.
+    """
+    file_handler = open(filename, 'rb')
+    ensemble = cPickle.load(file_handler)
+    file_handler.close()
     return ensemble
 
-class Ensemble:
+class Ensemble(object):
+    """
+    The ensemble class does all the heavy lifting to incorporate sklearn
+    ensembles into the NowTrade ecosystem.
+    """
     def __init__(self, train_data, prediction_data, ensemble_type=RANDOM_FOREST_REGRESSOR):
         self.train_data = train_data
         self.prediction_data = prediction_data
@@ -50,40 +62,59 @@ class Ensemble:
         self.feature_importances = None
         self.logger = logger.Logger(self.__class__.__name__)
         self.logger.info('train_data: %s  prediction_data: %s  ensemble_type: %s'
-                %(train_data, prediction_data, ensemble_type))
+                         %(train_data, prediction_data, ensemble_type))
 
     def save(self):
+        """
+        Returns the pickled fitted ensemble as a string.
+
+        WARNING: Can be very big in size.
+        """
         return cPickle.dumps(self)
 
     def save_to_file(self, filename):
-        f = open(filename, 'wb')
-        cPickle.dump(self, f)
-        f.close()
+        """
+        Saves an ensemble to file for later use.
+
+        WARNING: Can be very big in size.
+        """
+        file_handler = open(filename, 'wb')
+        cPickle.dump(self, file_handler)
+        file_handler.close()
 
     def build_ensemble(self, dataset, **kwargs):
+        """
+        Builds an ensemble using the dataset provided.
+        Expected keyword args:
+            - 'normalize'
+            - 'prediction_window'
+            - 'look_back_window'
+            - 'number_of_estimators'
+        Optional keyword args:
+            - 'max_depth'
+            - 'random_state'
+            - 'min_sample_split'
+            - 'number_of_jobs'
+            - 'learning_rate'
+        @see: http://scikit-learn.org/0.15/modules/generated/sklearn.ensemble.\
+              RandomForestRegressor.html#sklearn.ensemble.RandomForestRegressor
+        """
         self.training_set = []
         self.target_set = []
-        if 'normalize' in kwargs: self.normalize = kwargs['normalize']
-        if 'prediction_window' in kwargs: self.prediction_window = kwargs['prediction_window']
-        else: assert self.prediction_window != None
-        if 'look_back_window' in kwargs: self.look_back_window = kwargs['look_back_window']
-        else: assert self.look_back_window != None
-        if 'number_of_estimators' in kwargs: self.number_of_estimators = kwargs['number_of_estimators']
-        else: assert self.number_of_estimators != None
-        if 'max_depth' in kwargs: self.max_depth = kwargs['max_depth']
-        #else: assert self.max_depth != None
-        if 'random_state' in kwargs: self.random_state = kwargs['random_state']
-        #else: assert self.random_state != None
-        if 'min_samples_split' in kwargs: self.min_samples_split = kwargs['min_samples_split']
-        #else: assert self.min_samples_split != None
-        if 'number_of_jobs' in kwargs: self.number_of_jobs = kwargs['number_of_jobs']
-        #else: assert self.number_of_jobs != None
-        if 'learning_rate' in kwargs: self.learning_rate = kwargs['learning_rate']
-        #else: assert self.learning_rate != None
+        self.normalize = kwargs.get('normalize', None)
+        self.prediction_window = kwargs.get('prediction_window', None)
+        self.look_back_window = kwargs.get('look_back_window', None)
+        self.number_of_estimators = kwargs.get('number_of_estimators', None)
+        self.max_depth = kwargs.get('max_depth', None)
+        self.random_state = kwargs.get('random_state', None)
+        self.min_samples_split = kwargs.get('min_samples_split', None)
+        self.number_of_jobs = kwargs.get('number_of_jobs', None)
+        self.learning_rate = kwargs.get('learning_rate', None)
         if self.normalize:
             training_values = np.log(dataset.data_frame[self.train_data])
             #training_values.fillna(method='backfill', inplace=True)
-            results = np.log(dataset.data_frame[self.prediction_data[0]].shift(-self.prediction_window))
+            results = \
+                np.log(dataset.data_frame[self.prediction_data[0]].shift(-self.prediction_window))
             #results.fillna(method='backfill', inplace=True)
             # Replace all 0's that have been log'ed to -inf with -999
             # -999 is sufficient as np.exp(-999) brings it back to 0
@@ -92,7 +123,6 @@ class Ensemble:
         else:
             training_values = dataset.data_frame[self.train_data]
             results = dataset.data_frame[self.prediction_data[0]].shift(-self.prediction_window)
-        length = len(training_values)
         for i in range(self.look_back_window, len(training_values)):
             values = training_values[i-self.look_back_window:i+1]
             values = list(chain.from_iterable(values.values))
@@ -106,11 +136,14 @@ class Ensemble:
             self.training_set.append(values)
             self.target_set.append(result)
         # Need to get rid of the last few values that represent things we couldn't predict yet
+        # Need to shuffle Training/Target Sets
         self.training_set = self.training_set[:-self.prediction_window]
         self.target_set = self.target_set[:-self.prediction_window]
-        # TODO: Shuffle Training/Target Sets
 
-    def fit(self, compute_importances=True, get_rating=True):
+    def fit(self, compute_importances=True):
+        """
+        Fits the model as configured.
+        """
         assert len(self.training_set) > 0
         assert len(self.target_set) > 0
         if self.ensemble_type == RANDOM_FOREST_REGRESSOR:
@@ -124,12 +157,12 @@ class Ensemble:
         self.ensemble.fit(self.training_set, self.target_set)
         if compute_importances:
             self.feature_importances = self.ensemble.feature_importances_
-        #if get_rating:
-            #self.rating = cross_val_score(self.ensemble,
-                                          #self.training_set,
-                                          #self.target_set).mean()
 
     def _activate(self, data):
+        """
+        Activates the ensemble using the data specified.
+        Returns the ensemble's prediction.
+        """
         #data.replace(-np.inf, -999, inplace=True)
         if np.isnan(np.sum(data)):
             #assert False, 'NaN values found in data while activating the ensemble'
@@ -140,13 +173,20 @@ class Ensemble:
         return self.ensemble.predict(data)[0]
 
     def activate_all(self, data_frame):
+        """
+        Activates the network for all values in the dataframe specified.
+        """
         assert self.ensemble != None, 'Please ensure you have fit your ensemble'
-        if self.normalize: df = np.log(data_frame[self.train_data])
-        else: df = data_frame[self.train_data]
+        if self.normalize:
+            dataframe = np.log(data_frame[self.train_data])
+        else:
+            dataframe = data_frame[self.train_data]
         res = []
-        for i in range(self.look_back_window, len(df)):
-            values = df[i-self.look_back_window:i+1]
+        for i in range(self.look_back_window, len(dataframe)):
+            values = dataframe[i-self.look_back_window:i+1]
             values = list(chain.from_iterable(values.values))
             res.append(self._activate(values))
-        if self.normalize: return np.exp(res)
-        else: return res
+        if self.normalize:
+            return np.exp(res)
+        else:
+            return res
