@@ -21,6 +21,7 @@ class SymbolList(object):
         for sym in self.symbols:
             if symbol == sym.symbol:
                 return sym
+        self.logger.error('Could not find symbol: %s' %symbol)
         return None
     def __repr__(self):
         return str(self.symbols)
