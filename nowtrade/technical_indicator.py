@@ -297,6 +297,8 @@ class ATR(TechnicalIndicator):
     """
     A technical indicator that returns the average true range of a series
     or technical indicator.
+
+    Need to supply the symbol, not the symbol data (example: msft, not msft.close).
     """
     def __init__(self, symbol, period):
         TechnicalIndicator.__init__(self)
@@ -350,14 +352,16 @@ class BBANDS(TechnicalIndicator):
             data_frame[self.middle] = middle
             data_frame[self.lower] = lower
         except KeyError:
+            data_frame[self.upper] = np.nan
             data_frame[self.middle] = np.nan
-            data_frame[self.lower] = np.nan
             data_frame[self.lower] = np.nan
 
 class DX(TechnicalIndicator):
     """
     A directional movement index technical indicator for a series or other
     technical indicator.
+
+    Need to supply the symbol, not the symbol data (example: msft, not msft.close).
     """
     def __init__(self, symbol, period):
         TechnicalIndicator.__init__(self)
@@ -383,6 +387,8 @@ class ADX(TechnicalIndicator):
     """
     The average directional index technical indicator for a series or other
     technical indicator.
+
+    Need to supply the symbol, not the symbol data (example: msft, not msft.close).
     """
     def __init__(self, symbol, period):
         TechnicalIndicator.__init__(self)
@@ -421,6 +427,8 @@ class ADX(TechnicalIndicator):
 class ULTOSC(TechnicalIndicator):
     """
     The ultimate oscillator technical indicator.
+
+    Need to supply the symbol, not the symbol data (example: msft, not msft.close).
     """
     def __init__(self, symbol, period1, period2, period3):
         TechnicalIndicator.__init__(self)
@@ -450,6 +458,8 @@ class ULTOSC(TechnicalIndicator):
 class STOCH(TechnicalIndicator):
     """
     The stochastic technical indicator.
+
+    Need to supply the symbol, not the symbol data (example: msft, not msft.close).
     """
     def __init__(self, symbol, fast_k_period=5, slow_k_period=3,
                  slow_k_ma_type=talib.MA_Type.SMA, slow_d_period=3,
@@ -576,7 +586,6 @@ class Ensemble(TechnicalIndicator):
         return self.value
     def results(self, data_frame):
         res = self.ensemble.activate_all(data_frame)
-        print res
         index = data_frame.index[-len(res):]
         try:
             data_frame[self.value] = pd.Series(res, index=index)
