@@ -101,15 +101,15 @@ class Ensemble(object):
         """
         self.training_set = []
         self.target_set = []
-        self.normalize = kwargs.get('normalize', None)
-        self.prediction_window = kwargs.get('prediction_window', None)
-        self.look_back_window = kwargs.get('look_back_window', None)
-        self.number_of_estimators = kwargs.get('number_of_estimators', None)
+        self.normalize = kwargs.get('normalize', True)
+        self.prediction_window = kwargs.get('prediction_window', 1)
+        self.look_back_window = kwargs.get('look_back_window', 10)
+        self.number_of_estimators = kwargs.get('number_of_estimators', 100)
         self.max_depth = kwargs.get('max_depth', None)
-        self.random_state = kwargs.get('random_state', None)
-        self.min_samples_split = kwargs.get('min_samples_split', None)
-        self.number_of_jobs = kwargs.get('number_of_jobs', None)
-        self.learning_rate = kwargs.get('learning_rate', None)
+        self.random_state = kwargs.get('random_state', 0)
+        self.min_samples_split = kwargs.get('min_samples_split', 1)
+        self.number_of_jobs = kwargs.get('number_of_jobs', 1)
+        self.learning_rate = kwargs.get('learning_rate', 1.0)
         if self.normalize:
             training_values = np.log(dataset.data_frame[self.train_data])
             #training_values.fillna(method='backfill', inplace=True)

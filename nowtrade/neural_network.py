@@ -118,10 +118,10 @@ class NeuralNetwork(object):
             - 'learning_rate'
             - 'momentum'
         """
-        self.hidden_layers = kwargs.get('hidden_layers', None)
-        self.prediction_window = kwargs.get('prediction_window', None)
-        self.learning_rate = kwargs.get('learning_rate', None)
-        self.momentum = kwargs.get('momentum', None)
+        self.hidden_layers = kwargs.get('hidden_layers', 3)
+        self.prediction_window = kwargs.get('prediction_window', 1)
+        self.learning_rate = kwargs.get('learning_rate', 0.1)
+        self.momentum = kwargs.get('momentum', 0.01)
         if not new:
             self.network.sorted = False
             self.network.sortModules()

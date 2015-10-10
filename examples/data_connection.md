@@ -11,7 +11,7 @@ You can use the helper scripts in the [scripts](../scripts) folder for this, but
     >>> stocks = ['AAPL']
     >>> start = datetime.datetime(2015, 01, 01)
     >>> end = datetime.datetime(2015, 01, 10)
-    >>> data_connection.populate_mongo_day(stocks, start, end, db='stock-data')
+    >>> data_connection.populate_mongo_day(stocks, start, end, database='stock-data')
 
 ```populate_mongo_day()``` is a helper function that pulls data from Yahoo and stores it in our local instance of mongo.
 You can use this function as often as you like with a later end date without overriding existing data.
