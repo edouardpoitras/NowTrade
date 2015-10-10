@@ -1,4 +1,5 @@
 import unittest
+from nowtrade.logger import CRITICAL
 from nowtrade.symbol_list import SymbolList, StockList
 
 class TestSymbolList(unittest.TestCase):
@@ -7,6 +8,7 @@ class TestSymbolList(unittest.TestCase):
         symbols = ['msft', 'gOOg', 'AAPl']
         stocks = symbols
         symbol_list = SymbolList(symbols)
+        symbol_list.logger.set_console_level(CRITICAL)
         stock_list = StockList(stocks)
         for symbol in symbol_list: sanity.remove(str(symbol))
         self.assertEqual(len(sanity), 0)
