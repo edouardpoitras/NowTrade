@@ -94,6 +94,7 @@ class TestIsShort(TestCriteria):
 class TestIsYear(TestCriteria):
     def test_is_year(self):
         crit = criteria.IsYear(2012)
+        self.assertEqual(crit.__repr__(), 'IsYear_2012')
         self.assertFalse(crit.apply(self.data).any())
         crit = criteria.IsYear(2010)
         self.assertTrue(crit.apply(self.data).all())
@@ -101,6 +102,7 @@ class TestIsYear(TestCriteria):
 class TestIsMonth(TestCriteria):
     def test_is_month(self):
         crit = criteria.IsMonth(6)
+        self.assertEqual(crit.__repr__(), 'IsMonth_6')
         self.assertTrue(crit.apply(self.data).all())
         crit = criteria.IsMonth(1)
         self.assertFalse(crit.apply(self.data).any())
@@ -108,6 +110,7 @@ class TestIsMonth(TestCriteria):
 class TestIsDay(TestCriteria):
     def test_is_day(self):
         crit = criteria.IsDay(7)
+        self.assertEqual(crit.__repr__(), 'IsDay_7')
         self.assertTrue(crit.apply(self.data)[-1])
         crit = criteria.IsDay(8)
         self.assertFalse(crit.apply(self.data)[-1])
@@ -124,6 +127,8 @@ class TestIsWeekDay(TestCriteria):
 class TestPositions(TestCriteria):
     def test_position(self):
         crit = criteria.Above('ONE', 5)
+        value = crit.apply(pd.DataFrame())
+        self.assertEqual(value, False)
         value = crit.apply(self.data.head(2))
         self.assertEqual(value, False)
         value = crit.apply(self.data.head(3))
@@ -132,6 +137,9 @@ class TestPositions(TestCriteria):
         value = crit.apply(self.data.head(3))
         self.assertEqual(value, True)
         crit = criteria.Below('TWO', 6, 2)
+        value = crit.apply(pd.DataFrame())
+        self.assertFalse(value)
+        value = crit.apply(self.data)
         self.assertEqual(value, True)
         crit = criteria.Below('ONE', 5)
         value = crit.apply(self.data.head(1))
@@ -151,7 +159,10 @@ class TestPositions(TestCriteria):
         value = crit.apply(self.data.head(2))
         self.assertEqual(value, False)
         crit = criteria.Equals('ONE', 10)
+        value = crit.apply(pd.DataFrame())
+        self.assertEqual(value, False)
         value = crit.apply(self.data.head(2))
+        self.assertEqual(value, False)
         crit = criteria.Equal('ONE', 10)
         value = crit.apply(self.data.head(2))
         self.assertEqual(value, False)

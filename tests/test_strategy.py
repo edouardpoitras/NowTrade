@@ -91,6 +91,29 @@ class TestStrategy(unittest.TestCase):
         self.assertEqual(report_overview['average_trading_amount'], 5003.5199999999995)
         self.assertEqual(report_overview['profitability'], 100.00)
 
+    def test_simple_ti_crit_strategy(self):
+        sma2 = technical_indicator.SMA(self.symbol.close, 2)
+        sma3 = technical_indicator.SMA(self.symbol.close, 3)
+        self.d.add_technical_indicator(sma2);
+        self.d.add_technical_indicator(sma3);
+        enter_crit1 = criteria.Above(sma2, sma3)
+        enter_crit2 = criteria.Below(sma3, sma2)
+        enter_crit3 = criteria.InRange(sma2, 25, 26)
+        enter_crit4 = criteria.CrossingAbove(sma2, sma3)
+        enter_crit5 = criteria.CrossingBelow(sma2, sma3)
+        exit_crit1 = criteria.BarsSinceLong(self.symbol, 2)
+        exit_crit2 = criteria.Equals(sma2, sma3)
+        enter_crit_group1 = criteria_group.CriteriaGroup([enter_crit1, enter_crit2], Long(), self.symbol)
+        enter_crit_group2 = criteria_group.CriteriaGroup([enter_crit3, enter_crit4, enter_crit5], Long(), self.symbol)
+        exit_crit_group1 = criteria_group.CriteriaGroup([exit_crit1], LongExit(), self.symbol)
+        exit_crit_group2 = criteria_group.CriteriaGroup([exit_crit2], LongExit(), self.symbol)
+        tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))
+        strat = strategy.Strategy(self.d, [enter_crit_group1, enter_crit_group2, exit_crit_group1, exit_crit_group2], tp)
+        strat.simulate()
+        overview = strat.report.overview()
+        self.assertEqual(overview['trades'], 1)
+
+
     def test_report(self):
         enter_crit = criteria.Above(self.symbol.close, 25.88)
         exit_crit = criteria.BarsSinceLong(self.symbol, 1)
