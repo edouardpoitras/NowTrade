@@ -87,8 +87,16 @@ class KellyCriterion(TradingAmount):
         print 'WARNING: The KellyCriterion object is incomplete'
         TradingAmount.__init__(self)
         self.win_probability = win_probability
+        self.average_gains = average_gains
+        self.average_losses = average_losses
         self.ratio = average_gains / average_losses
         self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'KellyCriterion(win_probability=%s, average_gains=%s, average_losses=%s)' \
+                             %(self.win_probability, self.average_gains, self.average_losses)
+    def __repr__(self):
+        return 'KellyCriterion(win_probability=%s, average_gains=%s, average_losses=%s)' \
+                             %(self.win_probability, self.average_gains, self.average_losses)
     def get_shares(self, price, available_money): # pylint: disable=unused-argument
         """
         Return the number of shares to purchase based on the current symbol

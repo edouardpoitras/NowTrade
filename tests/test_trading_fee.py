@@ -13,6 +13,7 @@ class TestTradingFees(unittest.TestCase):
         Simple test for all trading fees.
         """
         trading_fee = StaticFee(5)
+        self.assertEquals(trading_fee.__repr__(), 'StaticFee(fee=5)')
         self.assertEquals(trading_fee.get_fee(100, 1), 5)
 
 if __name__ == "__main__":
