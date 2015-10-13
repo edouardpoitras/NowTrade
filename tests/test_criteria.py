@@ -118,6 +118,7 @@ class TestIsDay(TestCriteria):
 class TestIsWeekDay(TestCriteria):
     def test_is_week_day(self):
         crit = criteria.IsWeekDay(0)
+        self.assertEqual(crit.__repr__(), 'IsWeekDay_0')
         self.assertTrue(crit.apply(self.data)[-1])
         crit = criteria.IsWeekDay(4)
         self.assertTrue(crit.apply(self.data)[-4])
