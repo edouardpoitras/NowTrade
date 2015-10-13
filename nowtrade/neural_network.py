@@ -155,6 +155,9 @@ class NeuralNetwork(object):
         training_values = np.log(dataset.data_frame[self.train_data])
         results = np.log(dataset.data_frame[self.prediction_data].shift(-self.prediction_window))
         training_values['PREDICTION_%s' %self.prediction_data[0]] = results
+        # Replace all inf and -inf training values with NaNs.
+        training_values.replace([np.inf, -np.inf], np.nan, inplace=True)
+        # Drop all NaNs.
         training_values = training_values.dropna()
         for _, row_data in enumerate(training_values.iterrows()):
             _, data = row_data
