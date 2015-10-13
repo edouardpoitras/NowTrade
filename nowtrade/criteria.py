@@ -246,9 +246,14 @@ class TrailingStop(Criteria):
     def __init__(self, symbol, value, short=False, percent=False):
         Criteria.__init__(self)
         self.symbol = symbol
-        self.value = value
+        self.value = abs(value)
         self.short = short
         self.percent = percent
+        # Keep track of the trailing stop.
+        if self.short:
+            self.stop = self.value
+        else:
+            self.stop = -self.value
         self.label = 'TrailingStop_%s_%s_%s_%s' %(symbol, value, short, percent)
         self.num_bars_required = 1
         self.logger.info('Initialized - %s' %self)
@@ -263,14 +268,24 @@ class TrailingStop(Criteria):
         @return Series(bool) The criteria status
         """
         if self.percent:
-            check_value = data_frame['CHANGE_PERCENT_%s' %self.symbol][-1]
+            current_value = data_frame['CHANGE_PERCENT_%s' %self.symbol][-1]
         else:
-            check_value = data_frame['CHANGE_VALUE_%s' %self.symbol][-1]
-        if not np.isnan(check_value):
+            current_value = data_frame['CHANGE_VALUE_%s' %self.symbol][-1]
+        if not np.isnan(current_value):
             if self.short:
-                return self.value <= check_value
+                if current_value > self.stop:
+                    return True
+                else:
+                    # Update the trailing stop if needed.
+                    if current_value + self.value < self.stop:
+                        self.stop = current_value + self.value
             else:
-                return self.value >= check_value
+                if current_value < self.stop:
+                    return True
+                else:
+                    # Update the trailing stop if needed.
+                    if current_value - self.value > self.stop:
+                        self.stop = current_value - self.value
         return False
 
 class IsYear(Criteria):

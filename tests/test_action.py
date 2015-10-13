@@ -3,8 +3,13 @@ import unittest
 
 class TestActions(unittest.TestCase):
     """ Test Actions """
+    def test_action(self):
+        """ Test Action """
+        self.assertEqual(0, nowtrade.action.Action('test').raw())
+
     def test_action_long(self):
         """ Test Long Action """
+        self.assertEqual('LONG', nowtrade.action.Long())
         self.assertEqual('LONG', nowtrade.action.Long())
         self.assertEqual(nowtrade.action.Long(), 'LONG')
         self.assertEqual('Long', nowtrade.action.Long())
@@ -12,6 +17,7 @@ class TestActions(unittest.TestCase):
         self.assertEqual('long', nowtrade.action.Long())
         self.assertEqual(nowtrade.action.Long(), 'long')
         self.assertEqual(nowtrade.action.Long(), nowtrade.action.Long())
+        self.assertEqual(nowtrade.action.Long().__repr__(), 'long')
         self.assertNotEqual(nowtrade.action.Long(), nowtrade.action.Short())
         self.assertNotEqual(nowtrade.action.Long(), nowtrade.action.LongExit())
         self.assertNotEqual(nowtrade.action.Long(), nowtrade.action.ShortExit())
@@ -27,6 +33,7 @@ class TestActions(unittest.TestCase):
         self.assertEqual('short', nowtrade.action.Short())
         self.assertEqual(nowtrade.action.Short(), 'short')
         self.assertEqual(nowtrade.action.Short(), nowtrade.action.Short())
+        self.assertEqual(nowtrade.action.Short().__repr__(), 'short')
         self.assertNotEqual(nowtrade.action.Short(), nowtrade.action.Long())
         self.assertNotEqual(nowtrade.action.Short(), nowtrade.action.LongExit())
         self.assertNotEqual(nowtrade.action.Short(), nowtrade.action.ShortExit())
@@ -56,6 +63,7 @@ class TestActions(unittest.TestCase):
         self.assertEqual('exit long', nowtrade.action.LongExit())
         self.assertEqual(nowtrade.action.LongExit(), 'exit long')
         self.assertEqual(nowtrade.action.LongExit(), nowtrade.action.LongExit())
+        self.assertEqual(nowtrade.action.LongExit().__repr__(), 'longexit')
         self.assertNotEqual(nowtrade.action.LongExit(), nowtrade.action.Long())
         self.assertNotEqual(nowtrade.action.LongExit(), nowtrade.action.Short())
         self.assertNotEqual(nowtrade.action.LongExit(), nowtrade.action.ShortExit())
@@ -84,6 +92,7 @@ class TestActions(unittest.TestCase):
         self.assertEqual('exit short', nowtrade.action.ShortExit())
         self.assertEqual(nowtrade.action.ShortExit(), 'exit short')
         self.assertEqual(nowtrade.action.ShortExit(), nowtrade.action.ShortExit())
+        self.assertEqual(nowtrade.action.ShortExit().__repr__(), 'shortexit')
         self.assertNotEqual(nowtrade.action.ShortExit(), nowtrade.action.Long())
         self.assertNotEqual(nowtrade.action.ShortExit(), nowtrade.action.Short())
         self.assertNotEqual(nowtrade.action.ShortExit(), nowtrade.action.LongExit())

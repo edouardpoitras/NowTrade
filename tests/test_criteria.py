@@ -69,6 +69,7 @@ class TestBarsSinceAction(TestCriteria):
 class TestInMarket(TestCriteria):
     def test_in_market(self):
         crit = criteria.InMarket(self.one)
+        self.assertEqual(crit.__repr__(), crit.label)
         self.assertFalse(crit.apply(self.data))
         self.assertTrue(crit.apply(self.data[:-1]))
         self.assertTrue(crit.apply(self.data[:2]))
@@ -250,10 +251,47 @@ class TestStopLoss(TestCriteria):
 class TestTakeProfit(TestCriteria):
     def test_take_profit(self):
         crit = criteria.TakeProfit(self.one, 20)
+        self.assertEqual(crit.__repr__(), crit.label)
         self.assertTrue(crit.apply(self.data[:2]))
         self.assertFalse(crit.apply(self.data[:-1]))
+        crit_short = criteria.TakeProfit(self.one, 20, short=True)
+        self.assertFalse(crit_short.apply(self.data[:2]))
+        self.assertTrue(crit_short.apply(self.data[:-1]))
         self.data['PL_ONE'] = np.nan
         self.assertFalse(crit.apply(self.data))
+
+class TestTrailingStop(TestCriteria):
+    def test_trailing_stop(self):
+        crit = criteria.TrailingStop(self.one, 0.009, short=False, percent=True)
+        self.assertFalse(crit.apply(self.data[:1]))
+        self.assertFalse(crit.apply(self.data[:2]))
+        self.assertTrue(crit.apply(self.data[:3]))
+        crit = criteria.TrailingStop(self.one, 0.019, short=False, percent=True)
+        self.assertFalse(crit.apply(self.data[:1]))
+        self.assertFalse(crit.apply(self.data[:2]))
+        self.assertFalse(crit.apply(self.data[:3]))
+        self.assertTrue(crit.apply(self.data[:4]))
+        crit = criteria.TrailingStop(self.one, 0.09, short=False, percent=False)
+        self.assertTrue(crit.apply(self.data[:1]))
+        crit = criteria.TrailingStop(self.one, 0.19, short=False, percent=False)
+        self.assertFalse(crit.apply(self.data[:1]))
+        self.assertTrue(crit.apply(self.data[:2]))
+        crit = criteria.TrailingStop(self.one, 0.009, short=True, percent=True)
+        self.assertTrue(crit.apply(self.data[:1]))
+        crit = criteria.TrailingStop(self.one, 0.019, short=True, percent=True)
+        self.assertFalse(crit.apply(self.data[:1]))
+        self.assertTrue(crit.apply(self.data[:2]))
+        crit = criteria.TrailingStop(self.one, 0.09, short=True, percent=False)
+        self.assertFalse(crit.apply(self.data[:1]))
+        self.assertFalse(crit.apply(self.data[:2]))
+        self.assertFalse(crit.apply(self.data[:3]))
+        self.assertTrue(crit.apply(self.data[:4]))
+        crit = criteria.TrailingStop(self.one, 0.19, short=True, percent=False)
+        self.assertFalse(crit.apply(self.data[:1]))
+        self.assertFalse(crit.apply(self.data[:2]))
+        self.assertFalse(crit.apply(self.data[:3]))
+        self.assertFalse(crit.apply(self.data[:4]))
+        self.assertTrue(crit.apply(self.data[:5]))
 
 if __name__ == "__main__":
     unittest.main()
