@@ -105,15 +105,15 @@ class TestStrategy(unittest.TestCase):
         exit_crit1 = criteria.BarsSinceLong(self.symbol, 2)
         exit_crit2 = criteria.Equals(sma2, sma3)
         enter_crit_group1 = criteria_group.CriteriaGroup([enter_crit1, enter_crit2], Long(), self.symbol)
-        enter_crit_group2 = criteria_group.CriteriaGroup([enter_crit3, enter_crit4, enter_crit5], Long(), self.symbol)
+        enter_crit_group2 = criteria_group.CriteriaGroup([enter_crit1, enter_crit2], Short(), self.symbol)
+        enter_crit_group3 = criteria_group.CriteriaGroup([enter_crit3, enter_crit4, enter_crit5], Long(), self.symbol)
         exit_crit_group1 = criteria_group.CriteriaGroup([exit_crit1], LongExit(), self.symbol)
         exit_crit_group2 = criteria_group.CriteriaGroup([exit_crit2], LongExit(), self.symbol)
         tp = trading_profile.TradingProfile(10000, trading_amount.StaticAmount(5000), trading_fee.StaticFee(0))
-        strat = strategy.Strategy(self.d, [enter_crit_group1, enter_crit_group2, exit_crit_group1, exit_crit_group2], tp)
+        strat = strategy.Strategy(self.d, [enter_crit_group1, enter_crit_group2, enter_crit_group3, exit_crit_group1, exit_crit_group2], tp)
         strat.simulate()
         overview = strat.report.overview()
-        self.assertEqual(overview['trades'], 1)
-
+        self.assertEqual(overview['trades'], 0)
 
     def test_report(self):
         enter_crit = criteria.Above(self.symbol.close, 25.88)

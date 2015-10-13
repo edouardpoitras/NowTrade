@@ -8,6 +8,7 @@ class TestSymbolList(unittest.TestCase):
         symbols = ['msft', 'gOOg', 'AAPl']
         stocks = symbols
         symbol_list = SymbolList(symbols)
+        self.assertEqual(symbol_list.__repr__(), '[MSFT, GOOG, AAPL]')
         symbol_list.logger.set_console_level(CRITICAL)
         stock_list = StockList(stocks)
         for symbol in symbol_list: sanity.remove(str(symbol))
