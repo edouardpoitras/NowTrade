@@ -1,6 +1,6 @@
 # Random Forest Strategy Example
 
-##### The user may want to educate themselves on potential issues with machine learning based strategies before using them in live trading, such as overfitting/underfitting, biases, etc. This is a very broad subject that is not covered here.
+##### The user may want to educate themselves on potential issues with machine learning based strategies before using them in live trading, such as normalization of data, overfitting/underfitting, biases, etc. This is a very broad subject that is not covered here.
 
 You can find the working source code of this strategy [here](random_forest.py).
 
@@ -55,6 +55,8 @@ Alright, let's create our random forest ensemble.  We will Use the OHLCV data of
 There we go!  This is also why we needed a reference to our googl stock from our stock list earlier.
 
 We don't absolutely need to use the 'GOOGL' values to train our ensemble.  We could also have used other stock values, indexes (if they were loaded in our dataset), technical indicators like RSI, SMA, or even other random forest ensembles!  As long as the stock was in our StockList and we have a reference to the technical indicators that have been added to our dataset, we can utilize them in our data for training.
+
+_NOTE: for better results, you'll most likely want to normalize the data before feeding it to the ensemble for fitting.  One way of accomplishing this is to use the ```PercentChange(ti)``` or ```Log(ti)``` technical indicators.  However, don't forget to account for this in your ensemble's output.  If using percent change in your prediction values, the ensemble will try to predict the percent change.  If using ```Log(ti)```, you'll need create another technical indicator using ```Exp(ensemble.value)``` to bring the values back to standard prices after prediction._
 
 We're not quite done creating our ensemble though.  We still need to configure it with all the nice bells and whistles that ensembles require. We're going to use a 5 day prediction window for our stock's close price and a look back period of 25. The look back period is the number of bars moving backwards in time that will be used for the training and predictions. Typically, you will need to tweak these parameters quite a bit to find the right strategy for you.  For more configuration options with these, see the scikit-learn Ensemble [documentation](http://scikit-learn.org/stable/modules/ensemble.html#parameters).
 

@@ -232,6 +232,20 @@ class TestSTOCHF(TestTechnicalIndicator):
         self.assertAlmostEqual(data[ti.fastk][4], 2.95857988)
         self.assertAlmostEqual(data[ti.fastd][4], 7.96783955)
 
+class TestLogExp(TestTechnicalIndicator):
+    def test_log_and_exp(self):
+        ti_log = technical_indicator.Log('one')
+        ti_log.results(self.data)
+        self.assertAlmostEqual(self.data[ti_log.value][1], 1.6094379)
+        self.assertAlmostEqual(self.data[ti_log.value][2], 2.3025851)
+        ti_exp = technical_indicator.Exp('LOG_one')
+        ti_exp.results(self.data)
+        self.assertAlmostEqual(self.data[ti_exp.value][1], self.data['one'][1])
+        self.assertAlmostEqual(self.data[ti_exp.value][2], self.data['one'][2])
+        self.assertAlmostEqual(self.data[ti_exp.value][3], self.data['one'][3])
+        self.assertAlmostEqual(self.data[ti_exp.value][4], self.data['one'][4])
+        self.assertAlmostEqual(self.data[ti_exp.value][5], self.data['one'][5])
+
 class TestNeuralNetwork(TestTechnicalIndicator):
     def test_neural_network(self):
         data = msft_data.copy()

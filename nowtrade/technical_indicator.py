@@ -146,8 +146,12 @@ class PercentChange(TechnicalIndicator):
     """
     A technical indicator that provides a running percent change over
     a time series.
+
+    data1 is the technical indicator to do a percent change.
+    data2 can either be an integer to do a percent change on the same series,
+    or another technical indicator.
     """
-    def __init__(self, data1, data2):
+    def __init__(self, data1, data2=1):
         TechnicalIndicator.__init__(self)
         self.data1 = data1
         self.data2 = data2
@@ -545,6 +549,46 @@ class STOCHF(TechnicalIndicator):
         except KeyError:
             data_frame[self.fastk] = np.nan
             data_frame[self.fastd] = np.nan
+
+class Log(TechnicalIndicator):
+    """
+    A technical indicator that applies the numpy log function to the data series.
+    Normally used for machine learning data normalization, along with Exp.
+    """
+    def __init__(self, data):
+        TechnicalIndicator.__init__(self)
+        self.data = data
+        self.value = 'LOG_%s' %data
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'Log(data=%s)' %self.data
+    def __repr__(self):
+        return self.value
+    def results(self, data_frame):
+        try:
+            data_frame[self.value] = np.log(data_frame[self.data])
+        except KeyError:
+            data_frame[self.value] = np.nan
+
+class Exp(TechnicalIndicator):
+    """
+    A technical indicator that applies the numpy exp function to the data series.
+    Normally used for machine learning data normalization, along with Log.
+    """
+    def __init__(self, data):
+        TechnicalIndicator.__init__(self)
+        self.data = data
+        self.value = 'EXP_%s' %data
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'Exp(data=%s)' %self.data
+    def __repr__(self):
+        return self.value
+    def results(self, data_frame):
+        try:
+            data_frame[self.value] = np.exp(data_frame[self.data])
+        except KeyError:
+            data_frame[self.value] = np.nan
 
 class NeuralNetwork(TechnicalIndicator):
     """

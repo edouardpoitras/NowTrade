@@ -51,7 +51,6 @@ class Ensemble(object):
         self.look_back_window = None
         self.training_set = []
         self.target_set = []
-        self.normalize = True
         self.number_of_estimators = 150
         self.max_depth = None
         self.random_state = 0
@@ -86,7 +85,6 @@ class Ensemble(object):
         """
         Builds an ensemble using the dataset provided.
         Expected keyword args:
-            - 'normalize'
             - 'prediction_window'
             - 'look_back_window'
             - 'number_of_estimators'
@@ -101,7 +99,6 @@ class Ensemble(object):
         """
         self.training_set = []
         self.target_set = []
-        self.normalize = kwargs.get('normalize', True)
         self.prediction_window = kwargs.get('prediction_window', 1)
         self.look_back_window = kwargs.get('look_back_window', 10)
         self.number_of_estimators = kwargs.get('number_of_estimators', 100)
@@ -110,19 +107,11 @@ class Ensemble(object):
         self.min_samples_split = kwargs.get('min_samples_split', 1)
         self.number_of_jobs = kwargs.get('number_of_jobs', 1)
         self.learning_rate = kwargs.get('learning_rate', 1.0)
-        if self.normalize:
-            training_values = np.log(dataset.data_frame[self.train_data])
-            #training_values.fillna(method='backfill', inplace=True)
-            results = \
-                np.log(dataset.data_frame[self.prediction_data[0]].shift(-self.prediction_window))
-            #results.fillna(method='backfill', inplace=True)
-            # Replace all 0's that have been log'ed to -inf with -999
-            # -999 is sufficient as np.exp(-999) brings it back to 0
-            training_values.replace(-np.inf, -999, inplace=True)
-            results.replace(-np.inf, -999, inplace=True)
-        else:
-            training_values = dataset.data_frame[self.train_data]
-            results = dataset.data_frame[self.prediction_data[0]].shift(-self.prediction_window)
+        training_values = dataset.data_frame[self.train_data]
+        results = dataset.data_frame[self.prediction_data[0]].shift(-self.prediction_window)
+        # Replace all 0's that have been normalized to -inf back to 0
+        training_values.replace(-np.inf, 0, inplace=True)
+        results.replace(-np.inf, 0, inplace=True)
         for i in range(self.look_back_window, len(training_values)):
             values = training_values[i-self.look_back_window:i+1]
             values = list(chain.from_iterable(values.values))
@@ -177,16 +166,10 @@ class Ensemble(object):
         Activates the network for all values in the dataframe specified.
         """
         assert self.ensemble != None, 'Please ensure you have fit your ensemble'
-        if self.normalize:
-            dataframe = np.log(data_frame[self.train_data])
-        else:
-            dataframe = data_frame[self.train_data]
+        dataframe = data_frame[self.train_data]
         res = []
         for i in range(self.look_back_window, len(dataframe)):
             values = dataframe[i-self.look_back_window:i+1]
             values = list(chain.from_iterable(values.values))
             res.append(self._activate(values))
-        if self.normalize:
-            return np.exp(res)
-        else:
-            return res
+        return res

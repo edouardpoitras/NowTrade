@@ -151,9 +151,8 @@ class NeuralNetwork(object):
         See randomBatches() here: http://pybrain.org/docs/api/datasets/superviseddataset.html
         """
         self.network_dataset = SupervisedDataSet(len(self.train_data), 1)
-        # Currently only supports log function for normalizing data
-        training_values = np.log(dataset.data_frame[self.train_data])
-        results = np.log(dataset.data_frame[self.prediction_data].shift(-self.prediction_window))
+        training_values = dataset.data_frame[self.train_data]
+        results = dataset.data_frame[self.prediction_data].shift(-self.prediction_window)
         training_values['PREDICTION_%s' %self.prediction_data[0]] = results
         # Replace all inf and -inf training values with NaNs.
         training_values.replace([np.inf, -np.inf], np.nan, inplace=True)
@@ -197,10 +196,10 @@ class NeuralNetwork(object):
         """
         Activates the network for all values in the dataframe specified.
         """
-        dataframe = np.log(data_frame[self.train_data])
+        dataframe = data_frame[self.train_data]
         res = []
         for _, row_data in enumerate(dataframe.iterrows()):
             _, data = row_data
             sample = list(data)
             res.append(self._activate(sample))
-        return np.exp(res)
+        return res
