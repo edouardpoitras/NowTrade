@@ -151,8 +151,19 @@ class NeuralNetwork(object):
         See randomBatches() here: http://pybrain.org/docs/api/datasets/superviseddataset.html
         """
         self.network_dataset = SupervisedDataSet(len(self.train_data), 1)
-        training_values = dataset.data_frame[self.train_data]
-        results = dataset.data_frame[self.prediction_data].shift(-self.prediction_window)
+        try:
+            training_values = dataset.data_frame[self.train_data]
+        except KeyError, err:
+            self.logger.error('%s - ensure you have provided the technical ' %err + \
+                              'indicator values for training data (ti.value), ' + \
+                              'and not the technical indicator objects themselves')
+        try:
+            prediction_series = dataset.data_frame[self.prediction_data]
+        except KeyError, err:
+            self.logger.error('%s - ensure you have provided the technical ' %err + \
+                              'indicator value for prediction data (ti.value), ' + \
+                              'and not the technical indicator object itself')
+        results = prediction_series.shift(-self.prediction_window)
         training_values['PREDICTION_%s' %self.prediction_data[0]] = results
         # Replace all inf and -inf training values with NaNs.
         training_values.replace([np.inf, -np.inf], np.nan, inplace=True)

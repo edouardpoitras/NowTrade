@@ -107,8 +107,19 @@ class Ensemble(object):
         self.min_samples_split = kwargs.get('min_samples_split', 1)
         self.number_of_jobs = kwargs.get('number_of_jobs', 1)
         self.learning_rate = kwargs.get('learning_rate', 1.0)
-        training_values = dataset.data_frame[self.train_data]
-        results = dataset.data_frame[self.prediction_data[0]].shift(-self.prediction_window)
+        try:
+            training_values = dataset.data_frame[self.train_data]
+        except KeyError, err:
+           self.logger.error('%s - ensure you have provided the technical ' %err + \
+                             'indicator values for training data (ti.value), ' + \
+                             'and not the technical indicator objects themselves')
+        try:
+            prediction_series = dataset.data_frame[self.prediction_data[0]]
+        except KeyError, err:
+           self.logger.error('%s - ensure you have provided the technical ' %err + \
+                             'indicator value for prediction data (ti.value), ' + \
+                             'and not the technical indicator object itself')
+        results = prediction_series.shift(-self.prediction_window)
         # Replace all 0's that have been normalized to -inf back to 0
         training_values.replace(-np.inf, 0, inplace=True)
         results.replace(-np.inf, 0, inplace=True)
