@@ -74,6 +74,16 @@ class TestDivision(TestTechnicalIndicator):
         sanity = data['DIVISION_MSFT_Close_2'] == data['TEST']
         self.assertTrue(sanity.all())
 
+class TestCandleSize(TestTechnicalIndicator):
+    def test_candle_size(self):
+        data = msft_data.copy()
+        ti = technical_indicator.CandleSize('MSFT')
+        ti.results(data)
+        sanity = data['MSFT_High'] - data['MSFT_Low'] == data['CandleSize_MSFT_WICK']
+        self.assertTrue(sanity.all())
+        self.assertAlmostEqual(data['CandleSize_MSFT_WICK'][0], 0.79)
+        self.assertAlmostEqual(data['CandleSize_MSFT_BODY'][0], 0.36)
+
 class TestPercentChange(TestTechnicalIndicator):
     def test_percent_change(self):
         ti1 = technical_indicator.PercentChange('one', 'two')

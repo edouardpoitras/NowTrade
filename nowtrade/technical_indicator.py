@@ -142,6 +142,34 @@ class Division(TechnicalIndicator):
         else:
             data_frame[self.value] = data_frame[self.data1] / self.data2
 
+class CandleSize(TechnicalIndicator):
+    """
+    A technical indicator that returns the candle sizes of a series.
+    It's essentially the max minus the min and absolute open - close.
+    Tracks the wick and body sizes.
+    """
+    def __init__(self, symbol):
+        TechnicalIndicator.__init__(self)
+        self.symbol = symbol
+        self.value = 'CandleSize_%s_WICK' %self.symbol
+        self.wick = self.value
+        self.body = 'CandleSize_%s_BODY' %self.symbol
+        self.logger.info('Initialized - %s' %self)
+    def __str__(self):
+        return 'CandleSize(%s)' %self.symbol
+    def __repr__(self):
+        return self.value
+    def results(self, data_frame):
+        try:
+            symbol_open = '%s_Open' %self.symbol
+            symbol_high = '%s_High' %self.symbol
+            symbol_low = '%s_Low' %self.symbol
+            symbol_close = '%s_Close' %self.symbol
+            data_frame[self.wick] = data_frame[symbol_high] - data_frame[symbol_low]
+            data_frame[self.body] = abs(data_frame[symbol_open] - data_frame[symbol_close])
+        except KeyError:
+            data_frame[self.value] = np.nan
+
 class PercentChange(TechnicalIndicator):
     """
     A technical indicator that provides a running percent change over
