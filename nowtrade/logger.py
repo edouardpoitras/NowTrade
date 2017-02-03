@@ -72,7 +72,7 @@ class Logger(object):
         """
         Sets the file logging level of the current logging object.
         """
-        if lvl == None:
+        if lvl is None:
             return
         self.logger.removeHandler(self.file_logging_handler)
         self.file_logging_handler = logging.FileHandler(self.log_file)
@@ -83,7 +83,7 @@ class Logger(object):
         """
         Sets the console logging level of the current logging object.
         """
-        if lvl == None:
+        if lvl is None:
             return
         self.logger.removeHandler(self.console_logging_handler)
         self.console_logging_handler = logging.StreamHandler()

@@ -2,8 +2,8 @@
 Contains the Report class, which keeps track of a strategy's various
 performance metrics and trading history.
 """
-import pandas as pd
 import numpy as np
+import pandas as pd
 from nowtrade import logger
 from nowtrade.trade import Trade
 from nowtrade.action import LONG, LONG_EXIT, SHORT, SHORT_EXIT

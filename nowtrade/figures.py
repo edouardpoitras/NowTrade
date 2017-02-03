@@ -3,10 +3,10 @@ This module provides an abstraction layer over matplotlib's plotting
 functionality.  It focuses on easily plotting charts of your strategy's
 performance and technical indicators.
 """
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.finance import candlestick_ochl
 from matplotlib.dates import date2num
+import pandas as pd
 from nowtrade import logger
 from nowtrade import strategy
 from nowtrade import symbol_list

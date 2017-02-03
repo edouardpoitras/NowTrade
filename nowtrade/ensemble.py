@@ -2,8 +2,8 @@
 Module that enables the use of ensembles in NowTrade.
 """
 import cPickle
-import numpy as np
 from itertools import chain
+import numpy as np
 from sklearn.ensemble import RandomForestRegressor #, RandomForestClassifier
 from nowtrade import logger
 

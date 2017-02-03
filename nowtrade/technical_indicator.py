@@ -3,10 +3,10 @@ This module contains all the technical indicators that can be applied
 to a nowtrade dataset.  You can use any number of these for your
 strategy.
 """
-import pandas as pd
+import uuid
 import numpy as np
 import talib
-import uuid
+import pandas as pd
 from nowtrade import logger
 
 class TechnicalIndicator(object):
