@@ -6,7 +6,7 @@ import urllib2
 import zipfile
 import datetime
 import pandas as pd
-import pandas.io.data as web
+import pandas_datareader.data as web
 from pandas import read_csv
 from StringIO import StringIO
 from nowtrade import logger
