@@ -426,4 +426,3 @@ def _exiting_ongoing_trade(data_frame, trade, action):
     data_frame['PL_%s' %trade.symbol][-1] = profit_loss - fee
     data_frame['CHANGE_VALUE_%s' %trade.symbol][-1] = enter_change
     data_frame['CHANGE_PERCENT_%s' %trade.symbol][-1] = percent_change
-
