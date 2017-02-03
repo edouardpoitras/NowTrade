@@ -236,6 +236,72 @@ class ForexiteConnection(DataConnection):
                     data[ticker] = data_frame
         return data
 
+class MySQLConnection(DataConnection):
+    """
+    MySQL database connection to retrieve data.
+    """
+    def __init__(self, host='localhost', port=3306, database='symbol_data', \
+                 username='root', password=''):
+        DataConnection.__init__(self)
+        import MySQLdb
+        self.host = host
+        self.port = port
+        self.database = database
+        self.username = username
+        self.password = password
+        self.db = MySQLdb.connect(host=host,
+                                  port=port,
+                                  user=username,
+                                  passwd=password,
+                                  db=database)
+        self.cursor = self.db.cursor()
+
+    def get_data(self, table_name, start, end, volume=False,
+                 timestamp_column='timestamp', custom_cols=[], label_prefix=''):
+        """
+        Returns a dataframe of the symbol data requested.
+
+        Assumes you have column names matching the following:
+
+            timestamp, open, high, low, close, volume
+
+        Volume is optional.
+
+        custom_cols is a list of custom column names you want to pull in on top
+        of the OHLCV data.
+        """
+        query = 'SELECT %s, open, high, low, close' %timestamp_column
+        if volume:
+            query += ', volume'
+        for col in custom_cols:
+            query += ', %s' %col
+        query += ' FROM %s WHERE %s >= "%s" AND %s <= "%s"'
+        query = query %(table_name,
+                        timestamp_column,
+                        start,
+                        timestamp_column,
+                        end)
+        num_results = self.cursor.execute(query)
+        if num_results < 1:
+            raise NoDataException()
+        results = []
+        for result in self.cursor.fetchall():
+            row = {'%sDate' %label_prefix: result[0],
+                   '%sOpen' %label_prefix: result[1],
+                   '%sHigh' %label_prefix: result[2],
+                   '%sLow' %label_prefix: result[3],
+                   '%sClose' %label_prefix: result[4]}
+            index = 4
+            if volume:
+                index += 1
+                row['%sVolume' %label_prefix] = result[index]
+            for col in custom_cols:
+                index += 1
+                row['%s%s' %(label_prefix, col)] = result[index]
+            results.append(row)
+        ret = pd.DataFrame.from_dict(results)
+        return ret.set_index('%sDate' %label_prefix)
+
 class MongoDatabaseConnection(DataConnection):
     """
     MongoDB connection to retrieve data.
