@@ -61,6 +61,10 @@ NowTrade has only been tested on Ubuntu 14.04 and 16.04.  It will most likely ru
 
     apt-get install python-matplotlib
 
+##### For MySQL Support
+
+    apt-get install python-mysqldb
+
 ##### For MongoDB Local Storage Support
 
     apt-get install mongodb python-pymongo
