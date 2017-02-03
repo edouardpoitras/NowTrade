@@ -18,7 +18,7 @@ install:
     - conda create -n testenv --yes pip python=$TRAVIS_PYTHON_VERSION
     - source activate testenv
     - conda install --yes numpy=$NUMPY_VERSION pandas=$PANDAS_VERSION scipy==$SCIPY_VERSION matplotlib Cython scikit-learn
-    - pip install nose-timer coverage coveralls pylint pybrain pymongo
+    - pip install nose-timer coverage coveralls pylint pybrain pymongo pandas-datareader
     - ./travis/install_talib_deps.sh
     - pip install --allow-external=TA-Lib --allow-unverified=TA-Lib TA-Lib
     - python setup.py install
