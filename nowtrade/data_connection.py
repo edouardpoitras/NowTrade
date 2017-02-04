@@ -238,6 +238,10 @@ class ForexiteConnection(DataConnection):
 class MySQLConnection(DataConnection):
     """
     MySQL database connection to retrieve data.
+
+    Requires a table name that matches the capitalized name of the symbol you
+    are pulling from. For example, if you wanted to pull data for the 'msft'
+    symbol, you would need a MySQL table named 'MSFT'.
     """
     def __init__(self, host='localhost', port=3306, database='symbol_data', \
                  username='root', password=''):
@@ -250,14 +254,16 @@ class MySQLConnection(DataConnection):
                               db=database)
         self.cursor = _db.cursor()
 
-    def get_data(self, table_name, start, end, volume=False,
-                 timestamp_column='timestamp', custom_cols=None, label_prefix=''):
+    def get_data(self, symbol, start, end, volume=False,
+                 date_column='date', custom_cols=None):
         """
         Returns a dataframe of the symbol data requested.
 
+        Assumes a MySQL table exists for the capitalized symbol name.
+
         Assumes you have column names matching the following:
 
-            timestamp, open, high, low, close, volume
+            date, open, high, low, close, volume
 
         Volume is optional.
 
@@ -266,37 +272,37 @@ class MySQLConnection(DataConnection):
         """
         if custom_cols is None:
             custom_cols = []
-        query = 'SELECT %s, open, high, low, close' %timestamp_column
+        query = 'SELECT %s, open, high, low, close' %date_column
         if volume:
             query += ', volume'
         for col in custom_cols:
             query += ', %s' %col
         query += ' FROM %s WHERE %s >= "%s" AND %s <= "%s"'
-        query = query %(table_name,
-                        timestamp_column,
+        query = query %(symbol,
+                        date_column,
                         start,
-                        timestamp_column,
+                        date_column,
                         end)
         num_results = self.cursor.execute(query)
         if num_results < 1:
             raise NoDataException()
         results = []
         for result in self.cursor.fetchall():
-            row = {'%sDate' %label_prefix: result[0],
-                   '%sOpen' %label_prefix: result[1],
-                   '%sHigh' %label_prefix: result[2],
-                   '%sLow' %label_prefix: result[3],
-                   '%sClose' %label_prefix: result[4]}
+            row = {'%s_Date' %symbol: result[0],
+                   '%s_Open' %symbol: result[1],
+                   '%s_High' %symbol: result[2],
+                   '%s_Low' %symbol: result[3],
+                   '%s_Close' %symbol: result[4]}
             index = 4
             if volume:
                 index += 1
-                row['%sVolume' %label_prefix] = result[index]
+                row['%s_Volume' %symbol] = result[index]
             for col in custom_cols:
                 index += 1
-                row['%s%s' %(label_prefix, col)] = result[index]
+                row['%s_%s' %(symbol, col)] = result[index]
             results.append(row)
         ret = pd.DataFrame.from_dict(results)
-        return ret.set_index('%sDate' %label_prefix)
+        return ret.set_index('%s_Date' %symbol)
 
 class MongoDatabaseConnection(DataConnection):
     """

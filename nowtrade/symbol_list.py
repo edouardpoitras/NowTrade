@@ -38,7 +38,6 @@ class Symbol(object):
     """
     def __init__(self, symbol):
         self.symbol = symbol.upper()
-        self.symbol = self.symbol
         self.open = '%s_Open' %self.symbol
         self.high = '%s_High' %self.symbol
         self.low = '%s_Low' %self.symbol
@@ -53,3 +52,8 @@ class Symbol(object):
         return hash(self.symbol)
     def __eq__(self, other):
         return self.symbol == other
+    def custom(self, name):
+        """
+        Used for custom columns pulled from a DB.
+        """
+        return '%s_%s' %(self.symbol, name)
