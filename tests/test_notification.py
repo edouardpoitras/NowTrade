@@ -6,6 +6,9 @@ class MockSMTPNotification(SMTPNotification):
         SMTPNotification.__init__(self, username, password, recipient)
         self.session = MockSMTPSession()
 
+    def _get_session(self):
+        pass
+
 class MockSMTPSession:
     def ehlo(self): pass
     def starttls(self): pass

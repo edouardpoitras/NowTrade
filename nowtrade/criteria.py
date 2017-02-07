@@ -558,7 +558,7 @@ class Not(Criteria):
         Apply the Not criteria to the data_frame provided.
         @return Series(bool) The criteria status
         """
-        if self.criteria.apply(data_frame) == False:
+        if not self.criteria.apply(data_frame):
             return True
         return False
 

@@ -49,8 +49,7 @@ class SMTPNotification(Notification):
                    'To: ' + self.recipient,
                    'MIME-Version: 1.0',
                    'Content-Type: text/html']
-        headers = '\r\n'.join(headers)
-        return headers
+        return '\r\n'.join(headers)
 
     def _get_session(self):
         """

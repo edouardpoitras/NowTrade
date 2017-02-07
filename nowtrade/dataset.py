@@ -54,7 +54,7 @@ end_datetime=%s, periods=%s, granularity=%s)' \
                          self.periods, \
                          self.granularity)
 
-    def load_data(self, realtime=False):
+    def load_data(self, realtime=False, **kwargs):
         """
         Does the actual fetching and storage of the data in the
         dataframe attribute.
@@ -65,11 +65,13 @@ end_datetime=%s, periods=%s, granularity=%s)' \
                 dataframe = self.data_connection.get_data(symbol, \
                                                           self.granularity, \
                                                           self.periods, \
-                                                          realtime=realtime)
+                                                          realtime=realtime,
+                                                          **kwargs)
             else:
                 dataframe = self.data_connection.get_data(symbol, \
                                                           self.start_datetime, \
-                                                          self.end_datetime)
+                                                          self.end_datetime,
+                                                          **kwargs)
             self.data_frame = self.data_frame.combine_first(dataframe)
 
     def resample(self, timeframe, volume=True, adjusted_close=False, symbol=None):

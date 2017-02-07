@@ -41,11 +41,12 @@ List of reasons you may not want to choose NowTrade over alternatives:
 
 ### Installation
 
-NowTrade has only been tested on Ubuntu 14.04.  It will most likely run just fine on any UNIX-based operating system provided all dependencies have been met.
+NowTrade has only been tested on Ubuntu 14.04 and 16.04.  It will most likely run just fine on any UNIX-based operating system provided all dependencies have been met.
 
 ##### Dependencies
 
     apt-get install python-pip python-numpy python-pandas python-scipy cython
+    pip install pandas-datareader
 
 ##### TaLib for Technical Indicators
     wget -O ta-lib-0.4.0-src.tar.gz http://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz/download
@@ -59,6 +60,10 @@ NowTrade has only been tested on Ubuntu 14.04.  It will most likely run just fin
 ##### Matplotlib for pretty charts
 
     apt-get install python-matplotlib
+
+##### For MySQL Support
+
+    apt-get install python-mysqldb
 
 ##### For MongoDB Local Storage Support
 

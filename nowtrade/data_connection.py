@@ -5,10 +5,10 @@ Also makes it easy to store this data locally for future strategy testing.
 import urllib2
 import zipfile
 import datetime
-import pandas as pd
-import pandas.io.data as web
-from pandas import read_csv
 from StringIO import StringIO
+import pandas_datareader.data as web
+import pandas as pd
+from pandas import read_csv
 from nowtrade import logger
 
 class NoDataException(Exception):
@@ -84,50 +84,49 @@ class GoogleConnection(DataConnection):
         """
         symbol = str(symbol).upper()
         data = None # Return data
-        if True:
-            url = 'http://www.google.com/finance/getprices?i=%s&p=%s&f=d,o,h,l,c,v&q=%s' \
-                   %(interval, period, symbol)
-            page = self._request(url)
-            entries = page.readlines()[7:] # first 7 line is document information
-            days = [] # Keep track of all days
-            day = None # Keep track of current day
-            date = None # Keep track of current time
-            # sample values:'a1316784600,31.41,31.5,31.4,31.43,150911'
-            for entry in entries:
-                quote = entry.strip().split(',')
-                if quote[0].startswith('a'): # Datetime
-                    day = datetime.datetime.fromtimestamp(int(quote[0][1:]))
-                    days.append(day)
-                    date = day
-                else:
-                    date = day + datetime.timedelta(minutes=int(quote[0])*interval/60)
-                if symbol_in_column:
-                    data_frame = pd.DataFrame({'%s_Open' %symbol: float(quote[4]), \
-                                               '%s_High' %symbol: float(quote[2]), \
-                                               '%s_Low' %symbol: float(quote[3]), \
-                                               '%s_Close' %symbol: float(quote[1]), \
-                                               '%s_Volume' %symbol: int(quote[5])}, \
-                                              index=[date])
-                else:
-                    data_frame = pd.DataFrame({'Open': float(quote[4]), \
-                                               'High': float(quote[2]), \
-                                               'Low': float(quote[3]), \
-                                               'Close': float(quote[1]), \
-                                               'Volume': int(quote[5])}, \
-                                              index=[date])
-                if data is None:
-                    data = data_frame
-                else: data = data.combine_first(data_frame)
-            # Reindex for missing minutes
-            new_index = None
-            for day in days:
-                index = pd.date_range(start=day, periods=391, freq='1Min')
-                if new_index is None:
-                    new_index = index
-                else:
-                    new_index = new_index + index
-            # Front fill for minute data
-            return data.reindex(new_index, method='ffill')
+        url = 'http://www.google.com/finance/getprices?i=%s&p=%s&f=d,o,h,l,c,v&q=%s' \
+               %(interval, period, symbol)
+        page = self._request(url)
+        entries = page.readlines()[7:] # first 7 line is document information
+        days = [] # Keep track of all days
+        day = None # Keep track of current day
+        date = None # Keep track of current time
+        # sample values:'a1316784600,31.41,31.5,31.4,31.43,150911'
+        for entry in entries:
+            quote = entry.strip().split(',')
+            if quote[0].startswith('a'): # Datetime
+                day = datetime.datetime.fromtimestamp(int(quote[0][1:]))
+                days.append(day)
+                date = day
+            else:
+                date = day + datetime.timedelta(minutes=int(quote[0])*interval/60)
+            if symbol_in_column:
+                data_frame = pd.DataFrame({'%s_Open' %symbol: float(quote[4]), \
+                                           '%s_High' %symbol: float(quote[2]), \
+                                           '%s_Low' %symbol: float(quote[3]), \
+                                           '%s_Close' %symbol: float(quote[1]), \
+                                           '%s_Volume' %symbol: int(quote[5])}, \
+                                          index=[date])
+            else:
+                data_frame = pd.DataFrame({'Open': float(quote[4]), \
+                                           'High': float(quote[2]), \
+                                           'Low': float(quote[3]), \
+                                           'Close': float(quote[1]), \
+                                           'Volume': int(quote[5])}, \
+                                          index=[date])
+            if data is None:
+                data = data_frame
+            else: data = data.combine_first(data_frame)
+        # Reindex for missing minutes
+        new_index = None
+        for day in days:
+            index = pd.date_range(start=day, periods=391, freq='1Min')
+            if new_index is None:
+                new_index = index
+            else:
+                new_index = new_index + index
+        # Front fill for minute data
+        return data.reindex(new_index, method='ffill')
 
 class OandaConnection(DataConnection):
     """
@@ -235,6 +234,75 @@ class ForexiteConnection(DataConnection):
                 else:
                     data[ticker] = data_frame
         return data
+
+class MySQLConnection(DataConnection):
+    """
+    MySQL database connection to retrieve data.
+
+    Requires a table name that matches the capitalized name of the symbol you
+    are pulling from. For example, if you wanted to pull data for the 'msft'
+    symbol, you would need a MySQL table named 'MSFT'.
+    """
+    def __init__(self, host='localhost', port=3306, database='symbol_data', \
+                 username='root', password=''):
+        DataConnection.__init__(self)
+        import MySQLdb
+        _db = MySQLdb.connect(host=host,
+                              port=port,
+                              user=username,
+                              passwd=password,
+                              db=database)
+        self.cursor = _db.cursor()
+
+    def get_data(self, symbol, start, end, volume=False,
+                 date_column='date', custom_cols=None):
+        """
+        Returns a dataframe of the symbol data requested.
+
+        Assumes a MySQL table exists for the capitalized symbol name.
+
+        Assumes you have column names matching the following:
+
+            date, open, high, low, close, volume
+
+        Volume is optional.
+
+        custom_cols is a list of custom column names you want to pull in on top
+        of the OHLCV data.
+        """
+        if custom_cols is None:
+            custom_cols = []
+        query = 'SELECT %s, open, high, low, close' %date_column
+        if volume:
+            query += ', volume'
+        for col in custom_cols:
+            query += ', %s' %col
+        query += ' FROM %s WHERE %s >= "%s" AND %s <= "%s"'
+        query = query %(symbol,
+                        date_column,
+                        start,
+                        date_column,
+                        end)
+        num_results = self.cursor.execute(query)
+        if num_results < 1:
+            raise NoDataException()
+        results = []
+        for result in self.cursor.fetchall():
+            row = {'%s_Date' %symbol: result[0],
+                   '%s_Open' %symbol: result[1],
+                   '%s_High' %symbol: result[2],
+                   '%s_Low' %symbol: result[3],
+                   '%s_Close' %symbol: result[4]}
+            index = 4
+            if volume:
+                index += 1
+                row['%s_Volume' %symbol] = result[index]
+            for col in custom_cols:
+                index += 1
+                row['%s_%s' %(symbol, col)] = result[index]
+            results.append(row)
+        ret = pd.DataFrame.from_dict(results)
+        return ret.set_index('%s_Date' %symbol)
 
 class MongoDatabaseConnection(DataConnection):
     """
