@@ -93,7 +93,7 @@ class Ensemble(object):
         Optional keyword args:
             - 'max_depth'
             - 'random_state'
-            - 'min_sample_split'
+            - 'min_samples_split'
             - 'number_of_jobs'
             - 'learning_rate'
         @see: http://scikit-learn.org/0.15/modules/generated/sklearn.ensemble.\
@@ -107,7 +107,7 @@ class Ensemble(object):
         self.number_of_estimators = kwargs.get('number_of_estimators', 100)
         self.max_depth = kwargs.get('max_depth', None)
         self.random_state = kwargs.get('random_state', 0)
-        self.min_samples_split = kwargs.get('min_samples_split', 1)
+        self.min_samples_split = kwargs.get('min_samples_split', 2)
         self.number_of_jobs = kwargs.get('number_of_jobs', 1)
         self.learning_rate = kwargs.get('learning_rate', 1.0)
         if self.normalize:
